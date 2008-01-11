@@ -10,7 +10,7 @@ except ImportError, e:
 DatabaseError = Exception
 IntegrityError = Exception
 
-Session = sessionmaker()
+# Session = sessionmaker()
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     uses_custom_queryset = True
