@@ -18,7 +18,7 @@ class Field(object):
     def create_sa_column(self):
         # create the base kwargs dict for sa
         kwargs = dict(key=self.column, nullable=self.null,
-                index=self.db_index, unique=self.unique)
+                index=self.db_index, unique=self.unique, default=self.default)
         # dump in field specific kwargs and overrides
         kwargs.update(self.sa_column_kwargs())
         self.sa_column = Column(self.name, self.sa_column_type(), 
@@ -41,17 +41,108 @@ class AutoField(Field):
         base = super(AutoField, self).sa_column_kwargs()
         base.update(kwargs)
         return base
-        
+    
     def sa_column_type(self):
-        return Integer
-        
+        return Integer()
+
+class BooleanField(Field):
+    def sa_column_type(self):
+        return Boolean()
+    
 class CharField(Field):
-    def sa_column_kwargs(self):
-        kwargs = dict()
-        base = super(AutoField, self).sa_column_kwargs()
-        base.update(kwargs)
-        return base
-        
     def sa_column_type(self):
         return Unicode(length=self.max_length)
         
+class CommaSeparatedIntegerField(CharField):
+    pass
+    
+class DateField(Field):
+    def sa_column_type(self):
+        return Date()
+
+class DateTimeField(DateField):
+    def sa_column_type(self):
+        return DateTime()
+
+class DecimalField(Field):
+    def sa_column_kwargs(self):
+        kwargs = dict(precision=self.decimal_places, length=self.max_digits)
+        base = super(AutoField, self).sa_column_kwargs()
+        base.update(kwargs)
+        return base
+
+    def sa_column_type(self):
+        return Numeric()
+
+class EmailField(CharField):
+    pass
+    
+class FileField(Field):
+    def sa_column_type(self):
+        return Unicode(length=self.max_length)
+
+class FilePathField(Field):
+    def sa_column_type(self):
+        return Unicode(length=self.max_length)
+
+class FloatField(Field):
+    def sa_column_type(self):
+        return Float()
+
+class ImageField(FileField):
+    pass
+
+class IntegerField(Field):
+    def sa_column_type(self):
+        return Integer()
+
+class IPAddressField(Field):
+    def sa_column_type(self):
+        return Unicode(length=self.max_length)
+
+class NullBooleanField(Field):
+    def sa_column_type(self):
+        return Boolean()
+
+class PhoneNumberField(Integer):
+    def sa_column_type(self):
+        ''' This is a bit odd because in Django the PhoneNumberField descends from an IntegerField in a 
+            hacky way of getting around not providing a max_length.  The database backends enforce the
+            length as a varchar(20).
+        '''
+        return Unicode(length=20)
+
+class PositiveIntegerField(IntegerField):
+    pass
+    
+class PositiveSmallIntegerField(IntegerField):
+    def sa_column_type(self):
+        return SmallInteger()
+
+class SlugField(CharField):
+    pass
+
+class SmallIntegerField(IntegerField):
+    def sa_column_type(self):
+        return SmallInteger()
+
+class TextField(Field):
+    def sa_column_type(self):
+        return UnicodeText()
+
+class TimeField(Field):
+    def sa_column_type(self):
+        return Time()
+
+class URLField(CharField):
+    pass
+
+class USStateField(Field):
+    def sa_column_type(self):
+        return Unicode(length=2)
+
+class XMLField(TextField):
+    pass
+    
+class OrderingField(IntegerField):
+    pass
