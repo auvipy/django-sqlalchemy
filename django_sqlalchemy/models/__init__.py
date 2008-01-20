@@ -6,26 +6,22 @@ except NameError:
 import sqlalchemy
 from sqlalchemy.types import *
 
-from django_sqlalchemy.models.fields import Field
-# from elixir.options import using_options, using_table_options, \
-#                            using_mapper_options, options_defaults
-# from elixir.entity import Entity, EntityMeta, EntityDescriptor, \
-#                           setup_entities, cleanup_entities
-# from elixir.fields import has_field, with_fields, Field
-# from elixir.relationships import belongs_to, has_one, has_many, \
+from django_sqlalchemy.models.options import using_options, using_table_options, \
+                           using_mapper_options, options_defaults
+from django_sqlalchemy.models.base import Model, ModelBase, EntityDescriptor, \
+                          setup_entities, cleanup_entities
+from django_sqlalchemy.models.fields import Field, AutoField, CharField, PhoneNumberField
+# from django_sqlalchemy.models.fields.related import belongs_to, has_one, has_many, \
 #                                  has_and_belongs_to_many, \
 #                                  ManyToOne, OneToOne, OneToMany, ManyToMany
-# from elixir.properties import has_property, GenericProperty, ColumnProperty
-# from elixir.statements import Statement
+from django_sqlalchemy.models.properties import has_property, GenericProperty, ColumnProperty
+from django_sqlalchemy.models.statements import Statement
 
 
 __version__ = '0.1.0'
 
-__all__ = ['Entity', 'EntityMeta',
-           'Field', 'has_field', 'with_fields',
+__all__ = ['Field', 'AutoField', 'CharField', 'PhoneNumberField',
            'has_property', 'GenericProperty', 'ColumnProperty',
-           'belongs_to', 'has_one', 'has_many', 'has_and_belongs_to_many',
-           'ManyToOne', 'OneToOne', 'OneToMany', 'ManyToMany',
            'using_options', 'using_table_options', 'using_mapper_options',
            'options_defaults', 'metadata', 'objectstore', 'session',
            'create_all', 'drop_all',
