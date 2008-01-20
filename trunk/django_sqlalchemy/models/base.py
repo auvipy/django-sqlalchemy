@@ -27,9 +27,9 @@ from sqlalchemy.orm                import Query, MapperExtension,\
 from sqlalchemy.ext.sessioncontext import SessionContext
 
 import django_sqlalchemy.models
-# from elixir.statements import process_mutators
-# from elixir import options
-# from elixir.properties import Property
+from django_sqlalchemy.models.statements import process_mutators
+from django_sqlalchemy.models import options
+from django_sqlalchemy.models.properties import Property
 
 
 __doc_all__ = ['Model', 'ModelBase']
@@ -117,11 +117,11 @@ class EntityDescriptor(object):
         self.table_args = list()
 
         # set default value for options with an optional module-level default
-        self.metadata = getattr(self.module, '__metadata__', elixir.metadata)
-        self.session = getattr(self.module, '__session__', elixir.session)
+        self.metadata = getattr(self.module, '__metadata__', django_sqlalchemy.models.metadata)
+        self.session = getattr(self.module, '__session__', django_sqlalchemy.models.session)
         self.objectstore = None
         self.collection = getattr(self.module, '__entity_collection__',
-                                  elixir.entities)
+                                  django_sqlalchemy.models.entities)
 
         for option in ('autosetup', 'inheritance', 'polymorphic',
                        'autoload', 'tablename', 'shortnames', 
@@ -138,7 +138,7 @@ class EntityDescriptor(object):
         Setup any values that might depend on using_options. For example, the 
         tablename or the metadata.
         '''
-        elixir.metadatas.add(self.metadata)
+        django_sqlalchemy.models.metadatas.add(self.metadata)
         if self.collection is not None:
             self.collection.append(self.entity)
 
@@ -148,7 +148,7 @@ class EntityDescriptor(object):
             # no stinking objectstore
             pass
         elif isinstance(session, SessionContext):
-            objectstore = elixir.Objectstore(session)
+            objectstore = django_sqlalchemy.models.Objectstore(session)
         elif not hasattr(session, 'registry'):
             # Both SessionContext and ScopedSession have a registry attribute,
             # but objectstores (whether Elixir's or Activemapper's) don't, so 
@@ -323,8 +323,8 @@ class EntityDescriptor(object):
         # create a list of callbacks for each event
         methods = {}
         for name, method in self.entity.__dict__.items():
-            if hasattr(method, '_elixir_events'):
-                for event in method._elixir_events:
+            if hasattr(method, '_django_sqlalchemy_events'):
+                for event in method._django_sqlalchemy_events:
                     event_methods = methods.setdefault(event, [])
                     event_methods.append(method)
         if not methods:
@@ -574,7 +574,7 @@ class TriggerProxy(object):
         self.attrname = attrname
 
     def __getattr__(self, name):
-        elixir.setup_all()
+        django_sqlalchemy.models.setup_all()
         #FIXME: it's possible to get an infinite loop here if setup_all doesn't
         #remove the triggers for this entity. This can happen if the entity is
         #not in the `entities` list for some reason.
@@ -595,7 +595,7 @@ class TriggerAttribute(object):
         #FIXME: it's possible to get an infinite loop here if setup_all doesn't
         #remove the triggers for this entity. This can happen if the entity is
         #not in the `entities` list for some reason.
-        elixir.setup_all()
+        django_sqlalchemy.models.setup_all()
         return getattr(owner, self.attrname)
 
 def is_base(cls):
@@ -615,7 +615,7 @@ class ModelBase(type):
     You should only use it directly if you want to define your own base class 
     for your entities (ie you don't want to use the provided 'Model' class).
     """
-    __metaclass__ = ClassReplacer(models.ModelBase)
+    __metaclass__ = models.base.ModelBase
     
     _entities = {}
 
@@ -627,6 +627,9 @@ class ModelBase(type):
         if is_base(cls):
             return
 
+        import pdb
+        pdb.set_trace()
+        
         # build a dict of entities for each frame where there are entities
         # defined
         caller_frame = sys._getframe(1)
@@ -669,7 +672,7 @@ class ModelBase(type):
 
     def __call__(cls, *args, **kwargs):
         if cls._descriptor.autosetup and not hasattr(cls, '_setup_done'):
-            elixir.setup_all()
+            django_sqlalchemy.models.setup_all()
         return type.__call__(cls, *args, **kwargs)
 
 
@@ -696,12 +699,12 @@ def _install_autosetup_triggers(cls, entity_name=None):
     # - visit_metadata method in sqlalchemy/ansisql.py
     original_table_iterator = md.table_iterator
     if not hasattr(original_table_iterator, 
-                   '_non_elixir_patched_iterator'):
+                   '_non_django_sqlalchemy_patched_iterator'):
         def table_iterator(*args, **kwargs):
-            elixir.setup_all()
+            django_sqlalchemy.models.setup_all()
             return original_table_iterator(*args, **kwargs)
         table_iterator.__doc__ = original_table_iterator.__doc__
-        table_iterator._non_elixir_patched_iterator = \
+        table_iterator._non_django_sqlalchemy_patched_iterator = \
             original_table_iterator
         md.table_iterator = table_iterator
 
@@ -733,9 +736,9 @@ def _cleanup_autosetup_triggers(cls):
     md.tables.pop(cls._table_key, None)
 
     # restore original table iterator if not done already
-    if hasattr(md.table_iterator, '_non_elixir_patched_iterator'):
+    if hasattr(md.table_iterator, '_non_django_sqlalchemy_patched_iterator'):
         md.table_iterator = \
-            md.table_iterator._non_elixir_patched_iterator
+            md.table_iterator._non_django_sqlalchemy_patched_iterator
 
     del cls._has_triggers
 
@@ -746,7 +749,6 @@ def setup_entities(entities):
     for entity in entities:
         if entity._descriptor.autosetup:
             _cleanup_autosetup_triggers(entity)
-
     for method_name in (
             'setup_autoload_table', 'create_pk_cols', 'setup_relkeys',
             'before_table', 'setup_table', 'setup_reltables', 'after_table',
@@ -815,11 +817,14 @@ class Model(object):
     For further information, please refer to the provided examples or
     tutorial.
     '''
-    __metaclass__ = ClassReplacer(models.Model)
+    __metaclass__ = ClassReplacer(models.Model, ModelBase)
     
     def __init__(self, **kwargs):
+        import pdb
+        pdb.set_trace()
         for key, value in kwargs.items():
             setattr(self, key, value)
+        self._original.__init__(self, **kwargs)
 
     def set(self, **kwargs):
         for key, value in kwargs.items():
