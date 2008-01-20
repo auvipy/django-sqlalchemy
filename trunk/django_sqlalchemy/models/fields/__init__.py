@@ -36,6 +36,7 @@ class Field(object):
         return dict()
         
 class AutoField(Field):
+    __metaclass__ = ClassReplacer(models.AutoField)
     def sa_column_kwargs(self):
         kwargs = dict(primary_key=True)
         base = super(AutoField, self).sa_column_kwargs()
@@ -46,25 +47,31 @@ class AutoField(Field):
         return Integer()
 
 class BooleanField(Field):
+    __metaclass__ = ClassReplacer(models.BooleanField)
     def sa_column_type(self):
         return Boolean()
     
 class CharField(Field):
+    __metaclass__ = ClassReplacer(models.CharField)
     def sa_column_type(self):
         return Unicode(length=self.max_length)
         
 class CommaSeparatedIntegerField(CharField):
+    __metaclass__ = ClassReplacer(models.CommaSeparatedIntegerField)
     pass
     
 class DateField(Field):
+    __metaclass__ = ClassReplacer(models.DateField)
     def sa_column_type(self):
         return Date()
 
 class DateTimeField(DateField):
+    __metaclass__ = ClassReplacer(models.DateTimeField)
     def sa_column_type(self):
         return DateTime()
 
 class DecimalField(Field):
+    __metaclass__ = ClassReplacer(models.DecimalField)
     def sa_column_kwargs(self):
         kwargs = dict(precision=self.decimal_places, length=self.max_digits)
         base = super(AutoField, self).sa_column_kwargs()
@@ -75,36 +82,45 @@ class DecimalField(Field):
         return Numeric()
 
 class EmailField(CharField):
+    __metaclass__ = ClassReplacer(models.EmailField)
     pass
     
 class FileField(Field):
+    __metaclass__ = ClassReplacer(models.FileField)
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
 class FilePathField(Field):
+    __metaclass__ = ClassReplacer(models.FilePathField)
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
 class FloatField(Field):
+    __metaclass__ = ClassReplacer(models.FloatField)
     def sa_column_type(self):
         return Float()
 
 class ImageField(FileField):
+    __metaclass__ = ClassReplacer(models.ImageField)
     pass
 
 class IntegerField(Field):
+    __metaclass__ = ClassReplacer(models.IntegerField)
     def sa_column_type(self):
         return Integer()
 
 class IPAddressField(Field):
+    __metaclass__ = ClassReplacer(models.IPAddressField)
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
 class NullBooleanField(Field):
+    __metaclass__ = ClassReplacer(models.NullBooleanField)
     def sa_column_type(self):
         return Boolean()
 
 class PhoneNumberField(Integer):
+    __metaclass__ = ClassReplacer(models.PhoneNumberField)
     def sa_column_type(self):
         ''' This is a bit odd because in Django the PhoneNumberField descends from an IntegerField in a 
             hacky way of getting around not providing a max_length.  The database backends enforce the
@@ -113,36 +129,46 @@ class PhoneNumberField(Integer):
         return Unicode(length=20)
 
 class PositiveIntegerField(IntegerField):
+    __metaclass__ = ClassReplacer(models.PositiveIntegerField)
     pass
     
 class PositiveSmallIntegerField(IntegerField):
+    __metaclass__ = ClassReplacer(models.PositiveSmallIntegerField)
     def sa_column_type(self):
         return SmallInteger()
 
 class SlugField(CharField):
+    __metaclass__ = ClassReplacer(models.SlugField)
     pass
 
 class SmallIntegerField(IntegerField):
+    __metaclass__ = ClassReplacer(models.SmallIntegerField)
     def sa_column_type(self):
         return SmallInteger()
 
 class TextField(Field):
+    __metaclass__ = ClassReplacer(models.TextField)
     def sa_column_type(self):
         return UnicodeText()
 
 class TimeField(Field):
+    __metaclass__ = ClassReplacer(models.TimeField)
     def sa_column_type(self):
         return Time()
 
 class URLField(CharField):
+    __metaclass__ = ClassReplacer(models.URLField)
     pass
 
 class USStateField(Field):
+    __metaclass__ = ClassReplacer(models.USStateField)
     def sa_column_type(self):
         return Unicode(length=2)
 
 class XMLField(TextField):
+    __metaclass__ = ClassReplacer(models.XMLField)
     pass
     
 class OrderingField(IntegerField):
+    __metaclass__ = ClassReplacer(models.OrderingField)
     pass

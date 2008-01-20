@@ -3,10 +3,10 @@ try:
 except NameError:
     from sets import Set as set
 
-from base import Model
-from fields import *
 import sqlalchemy
+from sqlalchemy.types import *
 
+from django_sqlalchemy.models.fields import Field
 # from elixir.options import using_options, using_table_options, \
 #                            using_mapper_options, options_defaults
 # from elixir.entity import Entity, EntityMeta, EntityDescriptor, \
@@ -18,6 +18,7 @@ import sqlalchemy
 # from elixir.properties import has_property, GenericProperty, ColumnProperty
 # from elixir.statements import Statement
 
+
 __version__ = '0.1.0'
 
 __all__ = ['Entity', 'EntityMeta',
@@ -26,17 +27,45 @@ __all__ = ['Entity', 'EntityMeta',
            'belongs_to', 'has_one', 'has_many', 'has_and_belongs_to_many',
            'ManyToOne', 'OneToOne', 'OneToMany', 'ManyToMany',
            'using_options', 'using_table_options', 'using_mapper_options',
-           'options_defaults', 'metadata', 'session',
+           'options_defaults', 'metadata', 'objectstore', 'session',
            'create_all', 'drop_all',
            'setup_all', 'cleanup_all', 
-           'setup_entities', 'cleanup_entities'] 
+           'setup_entities', 'cleanup_entities'] + \
+           sqlalchemy.types.__all__
 
 __doc_all__ = ['create_all', 'drop_all',
                'setup_all', 'cleanup_all',
                'metadata', 'session']
 
-from sqlalchemy.orm import scoped_session
-session = scoped_session(sqlalchemy.orm.create_session)
+
+class Objectstore(object):
+    """a wrapper for a SQLAlchemy session-making object, such as 
+    SessionContext or ScopedSession.
+    
+    Uses the ``registry`` attribute present on both objects
+    (versions 0.3 and 0.4) in order to return the current
+    contextual session.
+    """
+    
+    def __init__(self, ctx):
+        self.context = ctx
+
+    def __getattr__(self, name):
+        return getattr(self.context.registry(), name)
+    
+    session = property(lambda s:s.context.registry())
+
+# default session
+try: 
+    from sqlalchemy.orm import scoped_session
+    session = scoped_session(sqlalchemy.orm.create_session)
+except ImportError: 
+    # Not on version 0.4 of sqlalchemy
+    from sqlalchemy.ext.sessioncontext import SessionContext
+    session = Objectstore(SessionContext(sqlalchemy.orm.create_session))
+
+# backward-compatible name
+objectstore = session
 
 # default metadata
 metadata = sqlalchemy.MetaData()
@@ -92,3 +121,4 @@ def cleanup_all(drop_tables=False, *args, **kwargs):
 
     sqlalchemy.orm.clear_mappers()
     del entities[:]
+
