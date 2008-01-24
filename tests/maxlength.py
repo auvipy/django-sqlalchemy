@@ -60,8 +60,6 @@ class LegacyMaxlength(type):
     def __init__(cls, name, bases, attrs):
         super(LegacyMaxlength, cls).__init__(name, bases, attrs)
         # Decorate the class's __init__ to remove any maxlength keyword.
-        import pdb
-        # pdb.set_trace()
         cls.__init__ = remove_maxlength(cls.__init__)
         # Support accessing and setting to the legacy maxlength attribute.
         cls.maxlength = property(get_maxlength, set_maxlength)

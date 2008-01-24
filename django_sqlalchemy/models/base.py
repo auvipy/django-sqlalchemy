@@ -1,6 +1,5 @@
 from django.db import models
-from django_sqlalchemy.utils import ClassReplacer
-
+import pdb
 # class Model(object):
 #     __metaclass__ = ClassReplacer(models.Model)
 #     
@@ -29,7 +28,7 @@ from sqlalchemy.ext.sessioncontext import SessionContext
 import django_sqlalchemy.models
 from django_sqlalchemy.models.statements import process_mutators
 from django_sqlalchemy.models import options
-from django_sqlalchemy.models.properties import Property
+from django_sqlalchemy.models.properties import has_property, Property, GenericProperty, ColumnProperty
 
 
 __doc_all__ = ['Model', 'ModelBase']
@@ -609,14 +608,12 @@ def is_base(cls):
             return False
     return True
 
-class ModelBase(type):
+class ModelBase(models.base.ModelBase):
     """
     Model base meta class. 
     You should only use it directly if you want to define your own base class 
     for your entities (ie you don't want to use the provided 'Model' class).
     """
-    __metaclass__ = models.base.ModelBase
-    
     _entities = {}
 
     def __init__(cls, name, bases, dict_):
@@ -626,9 +623,6 @@ class ModelBase(type):
         # so on. 
         if is_base(cls):
             return
-
-        import pdb
-        pdb.set_trace()
         
         # build a dict of entities for each frame where there are entities
         # defined
@@ -636,14 +630,14 @@ class ModelBase(type):
         cid = cls._caller = id(caller_frame)
         caller_entities = ModelBase._entities.setdefault(cid, {})
         caller_entities[name] = cls
-
+        # pdb.set_trace()
         # Append all entities which are currently visible by the entity. This 
         # will find more entities only if some of them where imported from 
         # another module.
         for entity in [e for e in caller_frame.f_locals.values() 
                          if isinstance(e, ModelBase)]:
             caller_entities[entity.__name__] = entity
-
+        
         # create the entity descriptor
         desc = cls._descriptor = EntityDescriptor(cls)
 
@@ -652,7 +646,7 @@ class ModelBase(type):
         properties = [(name, attr) for name, attr in dict_.iteritems() 
                                    if isinstance(attr, Property)]
         sorted_props = sorted(properties, key=lambda i: i[1]._counter)
-
+        
         for name, prop in sorted_props:
             prop.attach(cls, name)
 
@@ -674,7 +668,6 @@ class ModelBase(type):
         if cls._descriptor.autosetup and not hasattr(cls, '_setup_done'):
             django_sqlalchemy.models.setup_all()
         return type.__call__(cls, *args, **kwargs)
-
 
 def _install_autosetup_triggers(cls, entity_name=None):
     #TODO: move as much as possible of those "_private" values to the
@@ -745,7 +738,6 @@ def _cleanup_autosetup_triggers(cls):
     
 def setup_entities(entities):
     '''Setup all entities in the list passed as argument'''
-
     for entity in entities:
         if entity._descriptor.autosetup:
             _cleanup_autosetup_triggers(entity)
@@ -795,7 +787,7 @@ def cleanup_entities(entities):
         desc.properties = {}
 
 
-class Model(object):
+class Model(models.Model):
     '''
     The base class for all entities
     
@@ -817,20 +809,17 @@ class Model(object):
     For further information, please refer to the provided examples or
     tutorial.
     '''
-    __metaclass__ = ClassReplacer(models.Model, ModelBase)
-
+    __metaclass__ = ModelBase
     
     def __init__(self, **kwargs):
-        import pdb
-        pdb.set_trace()
         for key, value in kwargs.items():
             setattr(self, key, value)
-        self._original.__init__(self, **kwargs)
-
+        return super(Model, self).__init__(**kwargs)
+    
     def set(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self, key, value)
-
+    
     # session methods
     def flush(self, *args, **kwargs):
         return object_session(self).flush([self], *args, **kwargs)

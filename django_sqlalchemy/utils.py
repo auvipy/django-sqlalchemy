@@ -62,7 +62,6 @@ class ClassReplacer(object):
         self.metaclass = metaclass
     
     def __call__(self, name, bases, attrs):
-        # pdb.set_trace()
         for n, v in attrs.items():
             if n in ("__class__", "__bases__", "__module__"):
                 continue

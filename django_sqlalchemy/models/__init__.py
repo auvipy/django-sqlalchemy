@@ -10,7 +10,7 @@ from django_sqlalchemy.models.options import using_options, using_table_options,
                            using_mapper_options, options_defaults
 from django_sqlalchemy.models.base import Model, ModelBase, EntityDescriptor, \
                           setup_entities, cleanup_entities
-from django_sqlalchemy.models.fields import Field, AutoField, CharField, PhoneNumberField
+from django_sqlalchemy.models.fields import *
 # from django_sqlalchemy.models.fields.related import belongs_to, has_one, has_many, \
 #                                  has_and_belongs_to_many, \
 #                                  ManyToOne, OneToOne, OneToMany, ManyToMany

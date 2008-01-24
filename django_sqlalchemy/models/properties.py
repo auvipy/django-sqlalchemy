@@ -91,17 +91,21 @@ class CounterMeta(type):
         CounterMeta.counter += 1
         return instance
 
+class Counter(object):
+    _counter = 0
+    def __init__(self, *args, **kwargs):
+        Counter._counter += 1
 
-class Property(EntityBuilder):
+class Property(EntityBuilder, Counter):
     '''
     Abstract base class for all properties of an Entity.
     '''
-    __metaclass__ = CounterMeta
     
     def __init__(self, *args, **kwargs):
         self.entity = None
         self.name = None
-
+        super(Property, self).__init__(*args, **kwargs)
+    
     def attach(self, entity, name):
         """Attach this property to its entity, using 'name' as name.
 
@@ -178,20 +182,20 @@ class ColumnProperty(GenericProperty):
     def evaluate_property(self, prop):
         return column_property(prop.label(self.name))
 
-#class Composite(GenericProperty):
+# class Composite(GenericProperty):
 #    def __init__(self, prop):
 #        super(GenericProperty, self).__init__()
 #        self.prop = prop
-
+# 
 #    def evaluate_property(self, prop):
 #        return composite(prop.label(self.name))
-
-#start = Composite(Point, lambda c: (c.x1, c.y1))
-
-#mapper(Vertex, vertices, properties={
+# 
+# start = Composite(Point, lambda c: (c.x1, c.y1))
+# 
+# mapper(Vertex, vertices, properties={
 #    'start':composite(Point, vertices.c.x1, vertices.c.y1),
 #    'end':composite(Point, vertices.c.x2, vertices.c.y2)
-#})
+# })
 
 
 has_property = PropertyStatement(GenericProperty)
