@@ -818,6 +818,7 @@ class Model(object):
     tutorial.
     '''
     __metaclass__ = ClassReplacer(models.Model, ModelBase)
+
     
     def __init__(self, **kwargs):
         import pdb
