@@ -62,18 +62,19 @@ class ClassReplacer(object):
         self.metaclass = metaclass
     
     def __call__(self, name, bases, attrs):
-        for name, value in attrs.items():
-            if name in ("__class__", "__bases__", "__module__"):
+        # pdb.set_trace()
+        for n, v in attrs.items():
+            if n in ("__class__", "__bases__", "__module__"):
                 continue
-            if name == "__metaclass__" and self.metaclass:
+            if n == "__metaclass__" and self.metaclass:
                 setattr(self.klass, "__metaclass__", self.metaclass(self.klass.__class__.__name__, (), {}))
             else:
                 # if the attribute exists in the original class then stuff it in the _original inner class 
                 setattr(self.klass, "_original", MethodContainer())
-                if hasattr(self.klass, name):
-                    setattr(self.klass._original, name, getattr(self.klass, name))
+                if hasattr(self.klass, n):
+                    setattr(self.klass._original, n, getattr(self.klass, n))
                 # add the attribute to the original class
-                setattr(self.klass, name, value)
+                setattr(self.klass, n, v)
         return self.klass
 
 

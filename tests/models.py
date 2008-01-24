@@ -7,6 +7,10 @@ class BaseMetaclass(type):
     def __new__(cls, name, bases, attrs):
          print "BaseMetaclass.__new__ called"
          return super(BaseMetaclass, cls).__new__(cls, name, bases, attrs)
+         
+    def __call__(cls, *args, **kwargs):
+        print "BaseMetaclass.__call__ called"
+        return type.__call__(cls, *args, **kwargs)
 
 # django.db.models.base.Model
 class BaseClass(object):
@@ -14,7 +18,6 @@ class BaseClass(object):
 
     def __init__(self):
         print "BaseClass.__init__ called"
-        return super(BaseClass, self).__init__(self)
     
     def method1(self):
         print "BaseClass.method1 called"
@@ -25,7 +28,10 @@ class MyMetaclass(type):
     
     def __init__(cls, name, bases, attrs):
         print "MyMetaclass.__init__ called"
-        cls._descriptor = 35
+        
+    def __call__(cls, *args, **kwargs):
+        print "MyMetaclass.__call__ called"
+        return type.__call__(cls, *args, **kwargs)
 
 # django_sqlalchemy.models.base.Model        
 class MyClass(object):
@@ -33,6 +39,7 @@ class MyClass(object):
     
     def __init__(self):
         print "MyClass.__init__ called"
+        self._original.__init__(self)
         
     def method2(self):
         print "MyClass.method2 called"
@@ -41,4 +48,3 @@ myclass_instance = MyClass()
 print myclass_instance.__metaclass__
 myclass_instance.method2()
 myclass_instance.method1()
-print myclass_instance._descriptor
