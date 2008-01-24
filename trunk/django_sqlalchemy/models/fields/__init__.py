@@ -1,63 +1,27 @@
 from django.db import models
 from django.conf import settings
-from django_sqlalchemy.utils import ClassReplacer
 from sqlalchemy import Column
 from sqlalchemy.orm import deferred, synonym
 from sqlalchemy.types import *
 from sqlalchemy.ext.associationproxy import association_proxy
+from django_sqlalchemy.models.statements import ClassMutator
+from django_sqlalchemy.models.properties import Property
+
 import pdb
 
-class Field(object):
-    __metaclass__ = ClassReplacer(models.Field)
+class Field(models.Field, Property):
     
-    def django_field__init__(self, verbose_name=None, name=None, primary_key=False,
-        max_length=None, unique=False, blank=False, null=False, db_index=False,
-        core=False, rel=None, default=models.NOT_PROVIDED, editable=True, serialize=True,
-        unique_for_date=None, unique_for_month=None, unique_for_year=None,
-        validator_list=None, choices=None, radio_admin=None, help_text='', db_column=None,
-        db_tablespace=None):
-        self.name = name
-        self.verbose_name = verbose_name
-        self.primary_key = primary_key
-        self.max_length, self.unique = max_length, unique
-        self.blank, self.null = blank, null
-        # Oracle treats the empty string ('') as null, so coerce the null
-        # option whenever '' is a possible value.
-        if self.empty_strings_allowed and settings.DATABASE_ENGINE == 'oracle':
-            self.null = True
-        self.core, self.rel, self.default = core, rel, default
-        self.editable = editable
-        self.serialize = serialize
-        self.validator_list = validator_list or []
-        self.unique_for_date, self.unique_for_month = unique_for_date, unique_for_month
-        self.unique_for_year = unique_for_year
-        self._choices = choices or []
-        self.radio_admin = radio_admin
-        self.help_text = help_text
-        self.db_column = db_column
-        self.db_tablespace = db_tablespace or settings.DEFAULT_INDEX_TABLESPACE
-
-        # Set db_index to True if the field has a relationship and doesn't explicitly set db_index.
-        self.db_index = db_index
-
-        # Increase the creation counter, and save our local copy.
-        self.creation_counter = Field.creation_counter
-        Field.creation_counter += 1
-        
     def __init__(self, *args, **kwargs):
-        super(Field, self).__init__()
-        
         self.synonym = kwargs.pop('synonym', None)
         self.deferred = kwargs.pop('deferred', False)
+        self.colname = kwargs.pop('name', None)
+        self.column = None
+        self.property = None
         # call django's init. this is here because I cannot figure out how to call django's Field.__init__
         # due to the way the maxlength metaclass is wired up.  it does crazy things, calling back to the 
         # derived class causing an infinite loop.
-        # pdb.set_trace()
-        self.django_field__init__(self, kwargs)
-        
-        self.colname = self.name
-        self.column = None
-        self.property = None
+        Property.__init__(self, *args, **kwargs)
+        models.Field.__init__(self, kwargs)
     
     def attach(self, entity, name):
         # If no colname was defined (through the 'colname' kwarg), set
@@ -110,9 +74,11 @@ class Field(object):
     def sa_column_kwargs(self):
         return dict()
        
-class AutoField(object):
-    __metaclass__ = ClassReplacer(models.AutoField)
-    
+class AutoField(models.AutoField, Field):
+    def __init__(self, *args, **kwargs):
+        models.AutoField.__init__(self, *args, **kwargs)
+        Field.__init__(self, *args, **kwargs)
+        
     def sa_column_kwargs(self):
         kwargs = dict(primary_key=True)
         base = super(AutoField, self).sa_column_kwargs()
@@ -122,88 +88,127 @@ class AutoField(object):
     def sa_column_type(self):
         return Integer()
 
-class BooleanField(object):
-    __metaclass__ = ClassReplacer(models.BooleanField)
+class BooleanField(models.BooleanField, Field):
+    def __init__(self, *args, **kwargs):
+        models.BooleanField.__init__(self, *args, **kwargs)
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Boolean()
     
-class CharField(object):
-    __metaclass__ = ClassReplacer(models.CharField)
-
+class CharField(models.CharField, Field):
     def __init__(self, *args, **kwargs):
-        self._original.__init__(self, *args, **kwargs)
+        Field.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
         return Unicode(length=self.max_length)
         
-class CommaSeparatedIntegerField(object):
-    __metaclass__ = ClassReplacer(models.CommaSeparatedIntegerField)
-    pass
+class CommaSeparatedIntegerField(models.CommaSeparatedIntegerField, CharField):
+    def __init__(self, *args, **kwargs):
+        CharField.__init__(self, *args, **kwargs)
     
-class DateField(object):
-    __metaclass__ = ClassReplacer(models.DateField)
+class DateField(models.DateField, Field):
+    def __init__(self, verbose_name=None, name=None, auto_now=False, auto_now_add=False, **kwargs):
+        models.DateField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                        name=kwargs.get('name', None), 
+                                        auto_now=kwargs.get('auto_now', False), 
+                                        auto_now_add=kwargs.get('auto_now_add', False), **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Date()
 
-class DateTimeField(object):
-    __metaclass__ = ClassReplacer(models.DateTimeField)
+class DateTimeField(models.DateTimeField, DateField):
+    def __init__(self, *args, **kwargs):
+        DateField.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return DateTime()
 
-class DecimalField(object):
-    __metaclass__ = ClassReplacer(models.DecimalField)
+class DecimalField(models.DecimalField, Field):
+    def __init__(self, *args, **kwargs):
+        models.DecimalField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                           name=kwargs.get('name', None), 
+                                           max_digits=kwargs.get('max_digits', None), 
+                                           decimal_places=kwargs.get('decimal_places', None), **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_kwargs(self):
         kwargs = dict(precision=self.decimal_places, length=self.max_digits)
-        base = super(AutoField, self).sa_column_kwargs()
+        base = super(DecimalField, self).sa_column_kwargs()
         base.update(kwargs)
         return base
 
     def sa_column_type(self):
         return Numeric()
 
-class EmailField(object):
-    __metaclass__ = ClassReplacer(models.EmailField)
-    pass
+class EmailField(models.EmailField, CharField):
+    def __init__(self, *args, **kwargs):
+        models.EmailField.__init__(self,  *args, **kwargs)
+        CharField.__init__(self, *args, **kwargs)
     
-class FileField(object):
-    __metaclass__ = ClassReplacer(models.FileField)
+class FileField(models.FileField, Field):
+    def __init__(self, *args, **kwargs):
+        models.FileField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                        name=kwargs.get('name', None), 
+                                        upload_to=kwargs.get('upload_to', ''), **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
-class FilePathField(object):
-    __metaclass__ = ClassReplacer(models.FilePathField)
+class FilePathField(models.FilePathField, Field):
+    def __init__(self, *args, **kwargs):
+        models.FilePathField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                            name=kwargs.get('name', None), 
+                                            path=kwargs.get('path', ''), 
+                                            match=kwargs.get('match', None), 
+                                            match=kwargs.get('recursive', False), **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
-class FloatField(object):
-    __metaclass__ = ClassReplacer(models.FloatField)
+class FloatField(models.FloatField, Field):
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Float()
 
-class ImageField(object):
-    __metaclass__ = ClassReplacer(models.ImageField)
-    pass
+class ImageField(models.ImageField, FileField):
+    def __init__(self, *args, **kwargs):
+        models.ImageField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                        name=kwargs.get('name', None), 
+                                        width_field=kwargs.get('width_field', ''), 
+                                        height_field=kwargs.get('height_field', None), 
+        FileField.__init__(self, *args, **kwargs)
 
-class IntegerField(object):
-    __metaclass__ = ClassReplacer(models.IntegerField)
+class IntegerField(models.IntegerField, Field):
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Integer()
 
-class IPAddressField(object):
-    __metaclass__ = ClassReplacer(models.IPAddressField)
+class IPAddressField(models.IPAddressField, Field):
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Unicode(length=self.max_length)
 
-class NullBooleanField(object):
-    __metaclass__ = ClassReplacer(models.NullBooleanField)
+class NullBooleanField(models.NullBooleanField, Field):
+    def __init__(self, *args, **kwargs):
+        models.NullBooleanField.__init__(self, *args, **kwargs)
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Boolean()
 
-class PhoneNumberField(object):
-    __metaclass__ = ClassReplacer(models.PhoneNumberField)
-    
+class PhoneNumberField(models.PhoneNumberField, IntegerField):
     def __init__(self, *args, **kwargs):
-        self._original.__init__(self, *args, **kwargs)
+        IntegerField.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
         ''' This is a bit odd because in Django the PhoneNumberField descends from an IntegerField in a 
@@ -212,47 +217,69 @@ class PhoneNumberField(object):
         '''
         return Unicode(length=20)
 
-class PositiveIntegerField(object):
-    __metaclass__ = ClassReplacer(models.PositiveIntegerField)
-    pass
+class PositiveIntegerField(models.PositiveIntegerField, IntegerField):
+    def __init__(self, *args, **kwargs):
+        IntegerField.__init__(self, *args, **kwargs)
+
+class PositiveSmallIntegerField(models.PositiveSmallIntegerField, IntegerField):
+    def __init__(self, *args, **kwargs):
+        IntegerField.__init__(self, *args, **kwargs)
     
-class PositiveSmallIntegerField(object):
-    __metaclass__ = ClassReplacer(models.PositiveSmallIntegerField)
     def sa_column_type(self):
         return SmallInteger()
 
-class SlugField(object):
-    __metaclass__ = ClassReplacer(models.SlugField)
-    pass
+class SlugField(models.SlugField, CharField):
+    def __init__(self, *args, **kwargs):
+        models.SlugField.__init__(self, *args, **kwargs)
+        CharField.__init__(self, *args, **kwargs)
 
-class SmallIntegerField(object):
-    __metaclass__ = ClassReplacer(models.SmallIntegerField)
+class SmallIntegerField(models.SmallIntegerField, IntegerField):
+    def __init__(self, *args, **kwargs):
+        IntegerField.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return SmallInteger()
 
-class TextField(object):
-    __metaclass__ = ClassReplacer(models.TextField)
+class TextField(models.TextField, Field):
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return UnicodeText()
 
-class TimeField(object):
-    __metaclass__ = ClassReplacer(models.TimeField)
+class TimeField(models.TimeField, Field):
+    def __init__(self, *args, **kwargs):
+        models.TimeField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                        name=kwargs.get('name', None), 
+                                        auto_now=kwargs.get('auto_now', False), 
+                                        auto_now_add=kwargs.get('auto_now_add', False), **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Time()
 
-class URLField(object):
-    __metaclass__ = ClassReplacer(models.URLField)
-    pass
+class URLField(models.URLField, CharField):
+    def __init__(self, *args, **kwargs):
+        models.URLField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                       name=kwargs.get('name', None), 
+                                       verify_exists=kwargs.get('verify_exists', True), 
+        CharField.__init__(self, *args, **kwargs)
 
-class USStateField(object):
-    __metaclass__ = ClassReplacer(models.USStateField)
+class USStateField(models.USStateField, Field):
+    def __init__(self, *args, **kwargs):
+        Field.__init__(self, *args, **kwargs)
+    
     def sa_column_type(self):
         return Unicode(length=2)
 
-class XMLField(object):
-    __metaclass__ = ClassReplacer(models.XMLField)
-    pass
-    
-class OrderingField(object):
-    __metaclass__ = ClassReplacer(models.OrderingField)
-    pass
+class XMLField(models.XMLField. TextField):
+    def __init__(self, *args, **kwargs):
+        models.XMLField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
+                                       name=kwargs.get('name', None), 
+                                       schema_path=kwargs.get('schema_path', None), 
+        TextField.__init__(self, *args, **kwargs)
+
+class OrderingField(models.OrderingField, IntegerField):
+    def __init__(self, *args, **kwargs):
+        OrderingField.__init__(self, *args, **kwargs)
+        IntegerField.__init__(self, *args, **kwargs)

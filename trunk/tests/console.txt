@@ -1,0 +1,95 @@
+>>> from django_sqlalchemy.models import *
+>>> setup_all()
+>>> create_all()
+2008-01-22 22:21:43,831 INFO sqlalchemy.engine.base.Engine.0x..70 PRAGMA table_info("testsa_foo_models_category")
+2008-01-22 22:21:43,832 INFO sqlalchemy.engine.base.Engine.0x..70 {}
+/Library/Python/2.5/site-packages/SQLAlchemy-0.4.2p3-py2.5.egg/sqlalchemy/databases/sqlite.py:389: SADeprecationWarning: Using String type with no length for CREATE TABLE is deprecated; use the Text type explicitly
+  colspec = self.preparer.format_column(column) + " " + column.type.dialect_impl(self.dialect, _for_ddl=True).get_col_spec()
+2008-01-22 22:21:44,167 INFO sqlalchemy.engine.base.Engine.0x..70 
+CREATE TABLE testsa_foo_models_category (
+	id INTEGER NOT NULL, 
+	phone VARCHAR(20) NOT NULL, 
+	name TEXT NOT NULL, 
+	PRIMARY KEY (id)
+)
+
+
+2008-01-22 22:21:44,167 INFO sqlalchemy.engine.base.Engine.0x..70 {}
+2008-01-22 22:21:44,170 INFO sqlalchemy.engine.base.Engine.0x..70 COMMIT
+>>> c = Category()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+NameError: name 'Category' is not defined
+>>> from foo.models import Category
+>>> c = Category()
+>>> c
+<Category: Category>
+>>> dir(c)
+['AddManipulator', 'ChangeManipulator', 'DoesNotExist', 'MultipleObjectsReturned', '__class__', '__delattr__', '__dict__', '__doc__', '__eq__', '__getattribute__', '__hash__', '__init__', '__metaclass__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__unicode__', '__weakref__', '_caller', '_class_state', '_collect_sub_objects', '_default_manager', '_descriptor', '_entity_name', '_get_FIELD_display', '_get_FIELD_filename', '_get_FIELD_height', '_get_FIELD_size', '_get_FIELD_url', '_get_FIELD_width', '_get_image_dimensions', '_get_next_or_previous_by_FIELD', '_get_next_or_previous_in_order', '_get_pk_val', '_global_session', '_meta', '_prepare', '_sa_session_id', '_save_FIELD_file', '_set_pk_val', '_setup_done', '_state', 'add_to_class', 'c', 'delete', 'expire', 'expunge', 'flush', 'id', 'mapper', 'merge', 'name', 'objects', 'phone', 'pk', 'query', 'refresh', 'save', 'save_or_update', 'set', 'table', 'update', 'validate']
+>>> c.name = 'Test'
+>>> c.phone = '338'
+>>> dir(session)
+['__call__', '__class__', '__contains__', '__delattr__', '__dict__', '__doc__', '__getattribute__', '__hash__', '__init__', '__iter__', '__module__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__', '__weakref__', 'begin', 'begin_nested', 'bind', 'clear', 'close', 'close_all', 'commit', 'configure', 'connection', 'delete', 'deleted', 'dirty', 'execute', 'expire', 'expunge', 'extension', 'flush', 'get', 'get_bind', 'identity_key', 'identity_map', 'is_modified', 'load', 'mapper', 'merge', 'new', 'object_session', 'query', 'refresh', 'registry', 'remove', 'rollback', 'save', 'save_or_update', 'scalar', 'session_factory', 'update']
+>>> session.flush()
+2008-01-22 22:27:36,692 INFO sqlalchemy.engine.base.Engine.0x..70 BEGIN
+/Library/Python/2.5/site-packages/SQLAlchemy-0.4.2p3-py2.5.egg/sqlalchemy/types.py:372: RuntimeWarning: Unicode type received non-unicode bind param value '338'
+  warnings.warn(RuntimeWarning("Unicode type received non-unicode bind param value %r" % value))
+/Library/Python/2.5/site-packages/SQLAlchemy-0.4.2p3-py2.5.egg/sqlalchemy/types.py:372: RuntimeWarning: Unicode type received non-unicode bind param value 'Test'
+  warnings.warn(RuntimeWarning("Unicode type received non-unicode bind param value %r" % value))
+2008-01-22 22:27:37,022 INFO sqlalchemy.engine.base.Engine.0x..70 INSERT INTO testsa_foo_models_category (phone, name) VALUES (?, ?)
+2008-01-22 22:27:37,022 INFO sqlalchemy.engine.base.Engine.0x..70 ['338', 'Test']
+2008-01-22 22:27:37,024 INFO sqlalchemy.engine.base.Engine.0x..70 COMMIT
+>>> Category.query.all()
+2008-01-22 22:29:52,238 INFO sqlalchemy.engine.base.Engine.0x..70 SELECT testsa_foo_models_category.id AS testsa_foo_models_category_id, testsa_foo_models_category.phone AS testsa_foo_models_category_phone, testsa_foo_models_category.name AS testsa_foo_models_category_name 
+FROM testsa_foo_models_category ORDER BY testsa_foo_models_category.oid
+2008-01-22 22:29:52,238 INFO sqlalchemy.engine.base.Engine.0x..70 []
+[<Category: Category>]
+>>> ^D
+mtrier@2229onew:~/Development/testsa$ ls
+__init__.py  bar.py       blah.py      foo          model.py     settings.py  test.sqlite
+__init__.pyc bar.pyc      blah.pyc     manage.py    model.pyc    settings.pyc urls.py
+mtrier@2229onew:~/Development/testsa$ sqlite3 test.sqlite 
+SQLite version 3.4.0
+Enter ".help" for instructions
+sqlite> .tables
+testsa_foo_models_category
+sqlite> select * from testsa_foo_models_category
+   ...> ;
+1|338|Test
+sqlite> .q
+
+
+
+>>> from django_sqlalchemy.models import *
+>>> setup_all()
+>>> from foo.models import Category
+>>> Category.query.all()
+2008-01-22 22:37:50,868 INFO sqlalchemy.engine.base.Engine.0x..10 SELECT testsa_foo_models_category.id AS testsa_foo_models_category_id, testsa_foo_models_category.phone AS testsa_foo_models_category_phone, testsa_foo_models_category.name AS testsa_foo_models_category_name 
+FROM testsa_foo_models_category ORDER BY testsa_foo_models_category.oid
+2008-01-22 22:37:50,868 INFO sqlalchemy.engine.base.Engine.0x..10 []
+[<Category: Category>]
+>>> c = Category.query.filter(id=1).one()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+TypeError: filter() got an unexpected keyword argument 'id'
+>>> Category.mapper
+>>> dir(Category.mapper)
+['__class__', '__delattr__', '__doc__', '__getattribute__', '__hash__', '__init__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__str__']
+>>> c = Category.query.all().first()
+2008-01-22 22:46:45,011 INFO sqlalchemy.engine.base.Engine.0x..10 SELECT testsa_foo_models_category.id AS testsa_foo_models_category_id, testsa_foo_models_category.phone AS testsa_foo_models_category_phone, testsa_foo_models_category.name AS testsa_foo_models_category_name 
+FROM testsa_foo_models_category ORDER BY testsa_foo_models_category.oid
+2008-01-22 22:46:45,012 INFO sqlalchemy.engine.base.Engine.0x..10 []
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+AttributeError: 'list' object has no attribute 'first'
+>>> c = Category.query.first()
+2008-01-22 22:46:56,772 INFO sqlalchemy.engine.base.Engine.0x..10 SELECT testsa_foo_models_category.id AS testsa_foo_models_category_id, testsa_foo_models_category.phone AS testsa_foo_models_category_phone, testsa_foo_models_category.name AS testsa_foo_models_category_name 
+FROM testsa_foo_models_category ORDER BY testsa_foo_models_category.oid 
+ LIMIT 1 OFFSET 0
+2008-01-22 22:46:56,772 INFO sqlalchemy.engine.base.Engine.0x..10 []
+>>> c
+<Category: Category>
+>>> c.name
+u'Test'
+>>> c.phone
+u'338'
