@@ -1,5 +1,4 @@
 import sys
-import pdb
 
 # django.db.models.base.ModelBase
 class BaseMetaclass(type):

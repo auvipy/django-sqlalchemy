@@ -3,8 +3,6 @@ import sys
 from maxlength import LegacyMaxlength
 from partial import *
 
-import pdb
-
 # models.Field
 class BaseClass(object):
     __metaclass__ = LegacyMaxlength

@@ -13,7 +13,7 @@ from django_sqlalchemy.models.base import Model, ModelBase, EntityDescriptor, \
 from django_sqlalchemy.models.fields import *
 # from django_sqlalchemy.models.fields.related import belongs_to, has_one, has_many, \
 #                                  has_and_belongs_to_many, \
-#                                  ManyToOne, OneToOne, OneToMany, ManyToMany
+#                                  ForeignKey, OneToOneField, OneToManyField, ManyToManyField
 from django_sqlalchemy.models.properties import has_property, GenericProperty, ColumnProperty
 from django_sqlalchemy.models.statements import Statement
 
@@ -118,3 +118,10 @@ def cleanup_all(drop_tables=False, *args, **kwargs):
     sqlalchemy.orm.clear_mappers()
     del entities[:]
 
+def create_sql():
+    from StringIO import StringIO
+    
+    buf = StringIO()
+    engine = create_engine('postgres://', strategy='mock', executor=lambda s, p='': buf.write(s + p))
+    create_all(engine)
+    print buf.getvalue()

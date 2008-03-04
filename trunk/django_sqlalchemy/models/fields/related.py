@@ -2,7 +2,7 @@
 This module provides support for defining relationships between your Elixir 
 entities.  Elixir currently supports two syntaxes to do so: the default
 `Attribute-based syntax`_ which supports the following types of relationships:
-ManyToOne_, OneToMany_, OneToOne_ and ManyToMany_, as well as a 
+ForeignKey_, OneToManyField_, OneToOneField_ and ManyToManyField_, as well as a 
 `DSL-based syntax`_ which provides the following statements: belongs_to_, 
 has_many_, has_one_ and has_and_belongs_to_many_. 
 
@@ -39,7 +39,7 @@ keyword argument.
 
 Here is a detailed explanation of each relation type:
 
-`ManyToOne`
+`ForeignKey`
 -----------
 
 Describes the child's side of a parent-child relationship.  For example, 
@@ -49,15 +49,15 @@ expressed like so:
 .. sourcecode:: python
 
     class Pet(Entity):
-        owner = ManyToOne('Person')
+        owner = ForeignKey('Person')
 
 Behind the scene, assuming the primary key of the `Person` entity is 
-an integer column named `id`, the ``ManyToOne`` relationship will 
+an integer column named `id`, the ``ForeignKey`` relationship will 
 automatically add an integer column named `owner_id` to the entity, with a 
 foreign key referencing the `id` column of the `Person` entity.
 
 In addition to the keyword arguments inherited from SQLAlchemy's relation 
-function, ``ManyToOne`` relationships accept the following optional arguments
+function, ``ForeignKey`` relationships accept the following optional arguments
 which will be directed to the created column:
 
 +----------------------+------------------------------------------------------+
@@ -102,10 +102,10 @@ ForeignKeyConstraint that is created:
 +----------------------+------------------------------------------------------+
 
 Additionally, Elixir supports the belongs_to_ statement as an alternative, 
-DSL-based, syntax to define ManyToOne_ relationships.
+DSL-based, syntax to define ForeignKey_ relationships.
 
 
-`OneToMany`
+`OneToManyField`
 -----------
 
 Describes the parent's side of a parent-child relationship when there can be
@@ -115,15 +115,15 @@ them being a `Person`. This could be expressed like so:
 .. sourcecode:: python
 
     class Person(Entity):
-        parent = ManyToOne('Person')
-        children = OneToMany('Person')
+        parent = ForeignKey('Person')
+        children = OneToManyField('Person')
 
-Note that a ``OneToMany`` relationship **cannot exist** without a 
-corresponding ``ManyToOne`` relationship in the other way. This is because the
-``OneToMany`` relationship needs the foreign key created by the ``ManyToOne`` 
+Note that a ``OneToManyField`` relationship **cannot exist** without a 
+corresponding ``ForeignKey`` relationship in the other way. This is because the
+``OneToManyField`` relationship needs the foreign key created by the ``ForeignKey`` 
 relationship.
 
-In addition to keyword arguments inherited from SQLAlchemy, ``OneToMany`` 
+In addition to keyword arguments inherited from SQLAlchemy, ``OneToManyField`` 
 relationships accept the following optional (keyword) arguments:
 
 +--------------------+--------------------------------------------------------+
@@ -138,12 +138,12 @@ relationships accept the following optional (keyword) arguments:
 +--------------------+--------------------------------------------------------+
 
 Additionally, Elixir supports an alternate, DSL-based, syntax to define
-OneToMany_ relationships, with the has_many_ statement.
+OneToManyField_ relationships, with the has_many_ statement.
 
 Also, as for standard SQLAlchemy relations, the ``order_by`` keyword argument 
 
 
-`OneToOne`
+`OneToOneField`
 ----------
 
 Describes the parent's side of a parent-child relationship when there is only
@@ -153,20 +153,20 @@ represented as a `GearStick` object. This could be expressed like so:
 .. sourcecode:: python
 
     class Car(Entity):
-        gear_stick = OneToOne('GearStick', inverse='car')
+        gear_stick = OneToOneField('GearStick', inverse='car')
 
     class GearStick(Entity):
-        car = ManyToOne('Car')
+        car = ForeignKey('Car')
 
-Note that a ``OneToOne`` relationship **cannot exist** without a corresponding 
-``ManyToOne`` relationship in the other way. This is because the ``OneToOne``
-relationship needs the foreign_key created by the ``ManyToOne`` relationship.
+Note that a ``OneToOneField`` relationship **cannot exist** without a corresponding 
+``ForeignKey`` relationship in the other way. This is because the ``OneToOneField``
+relationship needs the foreign_key created by the ``ForeignKey`` relationship.
 
 Additionally, Elixir supports an alternate, DSL-based, syntax to define
-OneToOne_ relationships, with the has_one_ statement.
+OneToOneField_ relationships, with the has_one_ statement.
 
 
-`ManyToMany`
+`ManyToManyField`
 ------------
 
 Describes a relationship in which one kind of entity can be related to several
@@ -177,12 +177,12 @@ tags, but the same `Tag` can be used on several articles.
 .. sourcecode:: python
 
     class Article(Entity):
-        tags = ManyToMany('Tag')
+        tags = ManyToManyField('Tag')
 
     class Tag(Entity):
-        articles = ManyToMany('Article')
+        articles = ManyToManyField('Article')
 
-Behind the scene, the ``ManyToMany`` relationship will 
+Behind the scene, the ``ManyToManyField`` relationship will 
 automatically create an intermediate table to host its data.
 
 Note that you don't necessarily need to define the inverse relationship.  In
@@ -190,11 +190,11 @@ our example, even though we want tags to be usable on several articles, we
 might not be interested in which articles correspond to a particular tag.  In
 that case, we could have omitted the `Tag` side of the relationship.
 
-If the entity containing your ``ManyToMany`` relationship is 
+If the entity containing your ``ManyToManyField`` relationship is 
 autoloaded, you **must** specify at least one of either the ``remote_side`` or
 ``local_side`` argument.
 
-In addition to keyword arguments inherited from SQLAlchemy, ``ManyToMany`` 
+In addition to keyword arguments inherited from SQLAlchemy, ``ManyToManyField`` 
 relationships accept the following optional (keyword) arguments:
 
 +--------------------+--------------------------------------------------------+
@@ -237,8 +237,8 @@ of the relationship, the second is the 'kind' of object you are relating to
 `belongs_to`
 ------------
 
-The ``belongs_to`` statement is the DSL syntax equivalent to the ManyToOne_
-relationship. As such, it supports all the same arguments as ManyToOne_
+The ``belongs_to`` statement is the DSL syntax equivalent to the ForeignKey_
+relationship. As such, it supports all the same arguments as ForeignKey_
 relationships.
 
 .. sourcecode:: python
@@ -251,8 +251,8 @@ relationships.
 `has_many`
 ----------
 
-The ``has_many`` statement is the DSL syntax equivalent to the OneToMany_
-relationship. As such, it supports all the same arguments as OneToMany_
+The ``has_many`` statement is the DSL syntax equivalent to the OneToManyField_
+relationship. As such, it supports all the same arguments as OneToManyField_
 relationships.
 
 .. sourcecode:: python
@@ -289,8 +289,8 @@ relationship object, via a `project` attribute.
 `has_one`
 ---------
 
-The ``has_one`` statement is the DSL syntax equivalent to the OneToOne_
-relationship. As such, it supports all the same arguments as OneToOne_
+The ``has_one`` statement is the DSL syntax equivalent to the OneToOneField_
+relationship. As such, it supports all the same arguments as OneToOneField_
 relationships.
 
 .. sourcecode:: python
@@ -306,8 +306,8 @@ relationships.
 -------------------------
 
 The ``has_and_belongs_to_many`` statement is the DSL syntax equivalent to the 
-ManyToMany_ relationship. As such, it supports all the same arguments as
-ManyToMany_ relationships.
+ManyToManyField_ relationship. As such, it supports all the same arguments as
+ManyToManyField_ relationships.
 
 .. sourcecode:: python
 
@@ -323,7 +323,7 @@ from sqlalchemy         import ForeignKeyConstraint, Column, \
                                Table, and_
 from sqlalchemy.orm     import relation, backref
 from django_sqlalchemy.models.statements  import ClassMutator
-from django_sqlalchemy.models.fields      import Field
+from django_sqlalchemy.models.fields import *
 from django_sqlalchemy.models.properties  import Property
 from django_sqlalchemy.models.base      import EntityDescriptor, ModelBase
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -461,7 +461,7 @@ class Relationship(Property):
                (other.inverse_name == self.name or not other.inverse_name)
 
 
-class ManyToOne(Relationship):
+class ForeignKey(Relationship):
     '''
     
     '''
@@ -470,7 +470,7 @@ class ManyToOne(Relationship):
         self.colname = kwargs.pop('colname', [])
         if self.colname and not isinstance(self.colname, list):
             self.colname = [self.colname]
-
+        
         self.column_kwargs = kwargs.pop('column_kwargs', {})
         if 'required' in kwargs:
             self.column_kwargs['nullable'] = not kwargs.pop('required')
@@ -491,10 +491,10 @@ class ManyToOne(Relationship):
         self.foreign_key = list()
         self.primaryjoin_clauses = list()
 
-        super(ManyToOne, self).__init__(*args, **kwargs)
+        super(ForeignKey, self).__init__(*args, **kwargs)
     
     def match_type_of(self, other):
-        return isinstance(other, (OneToMany, OneToOne))
+        return isinstance(other, (OneToManyField, OneToOneField))
 
     def create_keys(self, pk):
         '''
@@ -603,11 +603,11 @@ class ManyToOne(Relationship):
         return kwargs
 
 
-class OneToOne(Relationship):
+class OneToOneField(Relationship):
     uselist = False
 
     def match_type_of(self, other):
-        return isinstance(other, ManyToOne)
+        return isinstance(other, ForeignKey)
 
     def create_keys(self, pk):
         # make sure an inverse relationship exists
@@ -643,11 +643,11 @@ class OneToOne(Relationship):
         return kwargs
 
 
-class OneToMany(OneToOne):
+class OneToManyField(OneToOneField):
     uselist = True
     
     def get_prop_kwargs(self):
-        kwargs = super(OneToMany, self).get_prop_kwargs()
+        kwargs = super(OneToManyField, self).get_prop_kwargs()
 
         if 'order_by' in kwargs:
             kwargs['order_by'] = \
@@ -657,7 +657,7 @@ class OneToMany(OneToOne):
         return kwargs
 
 
-class ManyToMany(Relationship):
+class ManyToManyField(Relationship):
     uselist = True
 
     def __init__(self, *args, **kwargs):
@@ -675,10 +675,10 @@ class ManyToMany(Relationship):
         self.primaryjoin_clauses = list()
         self.secondaryjoin_clauses = list()
 
-        super(ManyToMany, self).__init__(*args, **kwargs)
+        super(ManyToManyField, self).__init__(*args, **kwargs)
 
     def match_type_of(self, other):
-        return isinstance(other, ManyToMany)
+        return isinstance(other, ManyToManyField)
 
     def create_tables(self):
         if self.secondary_table:
@@ -834,7 +834,7 @@ class ManyToMany(Relationship):
         return kwargs
 
     def is_inverse(self, other):
-        return super(ManyToMany, self).is_inverse(other) and \
+        return super(ManyToManyField, self).is_inverse(other) and \
                (self.user_tablename == other.user_tablename or 
                 (not self.user_tablename and not other.user_tablename))
 
@@ -908,7 +908,8 @@ def rel_mutator_handler(target):
     return handler
 
 
-belongs_to = ClassMutator(rel_mutator_handler(ManyToOne))
-has_one = ClassMutator(rel_mutator_handler(OneToOne))
-has_many = ClassMutator(rel_mutator_handler(OneToMany))
-has_and_belongs_to_many = ClassMutator(rel_mutator_handler(ManyToMany))
+ManyToOneField = ClassMutator(rel_mutator_handler(ForeignKey))
+belongs_to = ClassMutator(rel_mutator_handler(ForeignKey))
+has_one = ClassMutator(rel_mutator_handler(OneToOneField))
+has_many = ClassMutator(rel_mutator_handler(OneToManyField))
+has_and_belongs_to_many = ClassMutator(rel_mutator_handler(ManyToManyField))

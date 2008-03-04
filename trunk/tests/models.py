@@ -1,6 +1,5 @@
 from django_sqlalchemy.utils import ClassReplacer, MethodContainer
 import sys
-import pdb
 
 # django.db.models.base.ModelBase
 class BaseMetaclass(type):
