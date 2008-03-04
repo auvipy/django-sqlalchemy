@@ -7,8 +7,6 @@ from sqlalchemy.ext.associationproxy import association_proxy
 from django_sqlalchemy.models.statements import ClassMutator
 from django_sqlalchemy.models.properties import Property
 
-import pdb
-
 class Field(models.Field, Property):
     
     def __init__(self, *args, **kwargs):
@@ -21,7 +19,7 @@ class Field(models.Field, Property):
         # due to the way the maxlength metaclass is wired up.  it does crazy things, calling back to the 
         # derived class causing an infinite loop.
         Property.__init__(self, *args, **kwargs)
-        models.Field.__init__(self, kwargs)
+        models.Field.__init__(self, **kwargs)
     
     def attach(self, entity, name):
         # If no colname was defined (through the 'colname' kwarg), set
@@ -109,11 +107,11 @@ class CommaSeparatedIntegerField(models.CommaSeparatedIntegerField, CharField):
     
 class DateField(models.DateField, Field):
     def __init__(self, verbose_name=None, name=None, auto_now=False, auto_now_add=False, **kwargs):
-        models.DateField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
-                                        name=kwargs.get('name', None), 
-                                        auto_now=kwargs.get('auto_now', False), 
-                                        auto_now_add=kwargs.get('auto_now_add', False), **kwargs):
-        Field.__init__(self, *args, **kwargs)
+        models.DateField.__init__(self, verbose_name=verbose_name, 
+                                        name=name, 
+                                        auto_now=auto_now, 
+                                        auto_now_add=auto_now_add, **kwargs)
+        Field.__init__(self, verbose_name=None, name=None, **kwargs)
     
     def sa_column_type(self):
         return Date()
@@ -130,7 +128,7 @@ class DecimalField(models.DecimalField, Field):
         models.DecimalField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                            name=kwargs.get('name', None), 
                                            max_digits=kwargs.get('max_digits', None), 
-                                           decimal_places=kwargs.get('decimal_places', None), **kwargs):
+                                           decimal_places=kwargs.get('decimal_places', None), **kwargs)
         Field.__init__(self, *args, **kwargs)
     
     def sa_column_kwargs(self):
@@ -151,7 +149,7 @@ class FileField(models.FileField, Field):
     def __init__(self, *args, **kwargs):
         models.FileField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                         name=kwargs.get('name', None), 
-                                        upload_to=kwargs.get('upload_to', ''), **kwargs):
+                                        upload_to=kwargs.get('upload_to', ''), **kwargs)
         Field.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
@@ -163,7 +161,7 @@ class FilePathField(models.FilePathField, Field):
                                             name=kwargs.get('name', None), 
                                             path=kwargs.get('path', ''), 
                                             match=kwargs.get('match', None), 
-                                            match=kwargs.get('recursive', False), **kwargs):
+                                            match=kwargs.get('recursive', False), **kwargs)
         Field.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
@@ -181,7 +179,7 @@ class ImageField(models.ImageField, FileField):
         models.ImageField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                         name=kwargs.get('name', None), 
                                         width_field=kwargs.get('width_field', ''), 
-                                        height_field=kwargs.get('height_field', None), 
+                                        height_field=kwargs.get('height_field', None), **kwargs)
         FileField.__init__(self, *args, **kwargs)
 
 class IntegerField(models.IntegerField, Field):
@@ -252,7 +250,7 @@ class TimeField(models.TimeField, Field):
         models.TimeField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                         name=kwargs.get('name', None), 
                                         auto_now=kwargs.get('auto_now', False), 
-                                        auto_now_add=kwargs.get('auto_now_add', False), **kwargs):
+                                        auto_now_add=kwargs.get('auto_now_add', False), **kwargs)
         Field.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
@@ -262,7 +260,7 @@ class URLField(models.URLField, CharField):
     def __init__(self, *args, **kwargs):
         models.URLField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                        name=kwargs.get('name', None), 
-                                       verify_exists=kwargs.get('verify_exists', True), 
+                                       verify_exists=kwargs.get('verify_exists', True), **kwargs)
         CharField.__init__(self, *args, **kwargs)
 
 class USStateField(models.USStateField, Field):
@@ -272,11 +270,11 @@ class USStateField(models.USStateField, Field):
     def sa_column_type(self):
         return Unicode(length=2)
 
-class XMLField(models.XMLField. TextField):
+class XMLField(models.XMLField, TextField):
     def __init__(self, *args, **kwargs):
         models.XMLField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
                                        name=kwargs.get('name', None), 
-                                       schema_path=kwargs.get('schema_path', None), 
+                                       schema_path=kwargs.get('schema_path', None), **kwargs)
         TextField.__init__(self, *args, **kwargs)
 
 class OrderingField(models.OrderingField, IntegerField):

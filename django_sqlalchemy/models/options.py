@@ -186,7 +186,7 @@ def using_options_handler(entity, *args, **kwargs):
         if kwarg in valid_options:
             setattr(entity._descriptor, kwarg, kwargs[kwarg])
         else:
-            raise Exception("'%s' is not a valid option for Elixir entities." 
+            raise Exception("'%s' is not a valid option for django_sqlalchemy entities." 
                             % kwarg)
 
 

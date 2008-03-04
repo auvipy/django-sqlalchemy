@@ -1,5 +1,4 @@
 from django.db import models
-import pdb
 # class Model(object):
 #     __metaclass__ = ClassReplacer(models.Model)
 #     
@@ -122,6 +121,7 @@ class EntityDescriptor(object):
         self.collection = getattr(self.module, '__entity_collection__',
                                   django_sqlalchemy.models.entities)
 
+        # TODO: change this to place options inside _sa inner class
         for option in ('autosetup', 'inheritance', 'polymorphic',
                        'autoload', 'tablename', 'shortnames', 
                        'auto_primarykey', 'version_id_col', 
@@ -168,6 +168,9 @@ class EntityDescriptor(object):
             if self.inheritance == 'single':
                 self.tablename = self.parent._descriptor.tablename
 
+        if entity._meta.db_table:
+            self.tablename = entity._meta.db_table
+        
         if not self.tablename:
             if self.shortnames:
                 self.tablename = entity.__name__.lower()
@@ -191,7 +194,7 @@ class EntityDescriptor(object):
         one and needs one. 
         
         This method is "semi-recursive" in some cases: it calls the 
-        create_keys method on ManyToOne relationships and those in turn call
+        create_keys method on ForeignKey relationships and those in turn call
         create_pk_cols on their target. It shouldn't be possible to have an 
         infinite loop since a loop of primary_keys is not a valid situation.
         """
@@ -615,7 +618,7 @@ class ModelBase(models.base.ModelBase):
     for your entities (ie you don't want to use the provided 'Model' class).
     """
     _entities = {}
-
+    
     def __init__(cls, name, bases, dict_):
         # Only process further subclasses of the base classes (Entity et al.),
         # not the base classes themselves. We don't want the base entities to 
@@ -630,7 +633,6 @@ class ModelBase(models.base.ModelBase):
         cid = cls._caller = id(caller_frame)
         caller_entities = ModelBase._entities.setdefault(cid, {})
         caller_entities[name] = cls
-        # pdb.set_trace()
         # Append all entities which are currently visible by the entity. This 
         # will find more entities only if some of them where imported from 
         # another module.
@@ -640,7 +642,7 @@ class ModelBase(models.base.ModelBase):
         
         # create the entity descriptor
         desc = cls._descriptor = EntityDescriptor(cls)
-
+        
         # Process attributes (using the assignment syntax), looking for 
         # 'Property' instances and attaching them to this entity.
         properties = [(name, attr) for name, attr in dict_.iteritems() 
@@ -649,7 +651,10 @@ class ModelBase(models.base.ModelBase):
         
         for name, prop in sorted_props:
             prop.attach(cls, name)
-
+        
+        # sa_options = dict([(m, getattr(dict_['Sa'], m)) for m in dir(dict_['Sa']) if m not in ('__doc__', '__module__')])
+        # options.using_options(sa_options)
+        
         # Process mutators. Needed before _install_autosetup_triggers so that
         # we know of the metadata
         process_mutators(cls)
@@ -684,7 +689,7 @@ def _install_autosetup_triggers(cls, entity_name=None):
     # We need to monkeypatch the metadata's table iterator method because 
     # otherwise it doesn't work if the setup is triggered by the 
     # metadata.create_all().
-    # This is because ManyToMany relationships add tables AFTER the list 
+    # This is because ManyToManyField relationships add tables AFTER the list 
     # of tables that are going to be created is "computed" 
     # (metadata.tables.values()).
     # see:

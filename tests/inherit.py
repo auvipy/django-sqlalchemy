@@ -1,5 +1,4 @@
 import sys
-import pdb
 
 class A(object):
     def __init__(self):
