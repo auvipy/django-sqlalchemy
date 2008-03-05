@@ -69,7 +69,6 @@ def _do_mapping(session, cls, *args, **kwargs):
         raise Exception("Failed to map entity '%s' with its table or "
                         "selectable" % cls.__name__)
 
-
 class EntityDescriptor(object):
     '''
     EntityDescriptor describes fields and options needed for table creation.
@@ -121,7 +120,6 @@ class EntityDescriptor(object):
         self.collection = getattr(self.module, '__entity_collection__',
                                   django_sqlalchemy.models.entities)
 
-        # TODO: change this to place options inside _sa inner class
         for option in ('autosetup', 'inheritance', 'polymorphic',
                        'autoload', 'tablename', 'shortnames', 
                        'auto_primarykey', 'version_id_col', 

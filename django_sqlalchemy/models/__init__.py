@@ -17,6 +17,7 @@ from django_sqlalchemy.models.fields import *
 from django_sqlalchemy.models.properties import has_property, GenericProperty, ColumnProperty
 from django_sqlalchemy.models.statements import Statement
 
+from django.conf import settings
 
 __version__ = '0.1.0'
 
@@ -65,6 +66,11 @@ objectstore = session
 
 # default metadata
 metadata = sqlalchemy.MetaData()
+
+if getattr(settings, 'DJANGO_SQLALCHEMY_DBURI'):
+    metadata.bind = settings.DJANGO_SQLALCHEMY_DBURI
+if getattr(settings, 'DJANGO_SQLALCHEMY_ECHO'):
+    metadata.bind.echo = settings.DJANGO_SQLALCHEMY_ECHO
 
 metadatas = set()
 
@@ -117,11 +123,3 @@ def cleanup_all(drop_tables=False, *args, **kwargs):
 
     sqlalchemy.orm.clear_mappers()
     del entities[:]
-
-def create_sql():
-    from StringIO import StringIO
-    
-    buf = StringIO()
-    engine = create_engine('postgres://', strategy='mock', executor=lambda s, p='': buf.write(s + p))
-    create_all(engine)
-    print buf.getvalue()
