@@ -20,6 +20,10 @@ class DatabaseOperations(BaseDatabaseOperations):
         class SqlAlchemyQuerySet(DefaultQuerySet):
             pass
         return SqlAlchemyQuerySet
+        
+    def quote_name(self, name):
+        return name
+
 
 class ConnectionProxy(object):
     """
