@@ -617,6 +617,21 @@ class ModelBase(models.base.ModelBase):
     """
     _entities = {}
     
+    def __new__(cls, name, bases, attrs):
+        try:
+            parents = [b for b in bases if issubclass(b, Model)]
+            if not parents:
+                return type.__new__(cls, name, bases, attrs)
+        except NameError:
+            # 'Model' isn't defined yet, meaning we're looking at Django's own
+            # Model class, defined below.
+            return type.__new__(cls, name, bases, attrs)
+        
+        import pdb
+        pdb.set_trace()
+        
+        return super(ModelBase, cls).__new__(cls, name, bases, attrs)
+    
     def __init__(cls, name, bases, dict_):
         # Only process further subclasses of the base classes (Entity et al.),
         # not the base classes themselves. We don't want the base entities to 

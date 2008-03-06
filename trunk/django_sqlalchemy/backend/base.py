@@ -1,4 +1,3 @@
-
 from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseOperations, util
 
 try:
@@ -22,7 +21,8 @@ class DatabaseOperations(BaseDatabaseOperations):
         return SqlAlchemyQuerySet
         
     def quote_name(self, name):
-        return name
+        from django_sqlalchemy.models import metadata
+        return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
 
 
 class ConnectionProxy(object):
@@ -36,12 +36,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     features = DatabaseFeatures()
     ops = DatabaseOperations()
     
-    def _valid_connection(self):
-        # TODO: test for a valid connection
-        return False
-    
     def _cursor(self, settings):
-        if not self._valid_connection():
-            # TODO: connect to the database here.
-            pass
-        # return the cursor here (not sure how to do this yet.)
+        from django_sqlalchemy.models import metadata
+        return metadata.bind
+
