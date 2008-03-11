@@ -627,9 +627,6 @@ class ModelBase(models.base.ModelBase):
             # Model class, defined below.
             return type.__new__(cls, name, bases, attrs)
         
-        import pdb
-        pdb.set_trace()
-        
         return super(ModelBase, cls).__new__(cls, name, bases, attrs)
     
     def __init__(cls, name, bases, dict_):

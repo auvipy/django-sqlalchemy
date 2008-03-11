@@ -12,14 +12,9 @@ IntegrityError = Exception
 # Session = sessionmaker()
 
 class DatabaseFeatures(BaseDatabaseFeatures):
-    uses_custom_queryset = True
+    uses_custom_queryset = False
 
 class DatabaseOperations(BaseDatabaseOperations):
-    def query_set_class(self, DefaultQuerySet):
-        class SqlAlchemyQuerySet(DefaultQuerySet):
-            pass
-        return SqlAlchemyQuerySet
-        
     def quote_name(self, name):
         from django_sqlalchemy.models import metadata
         return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
