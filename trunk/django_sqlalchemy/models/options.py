@@ -159,7 +159,7 @@ POLYMORPHIC_COL_TYPE = String(POLYMORPHIC_COL_SIZE)
 
 # 
 options_defaults = dict(
-    autosetup=False,
+    autosetup=True,
     inheritance='single',
     polymorphic=True,
     autoload=False,
