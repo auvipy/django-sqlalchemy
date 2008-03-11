@@ -1,3 +1,5 @@
+class QuerySetMixin(object):
+    
     def query_set_class(self, DefaultQuerySet):
         class SqlAlchemyQuerySet(DefaultQuerySet):
             """
@@ -26,23 +28,7 @@
                 An iterator over the results from applying this QuerySet to the
                 database.
                 """
-                fill_cache = self.query.select_related
-                if isinstance(fill_cache, dict):
-                    requested = fill_cache
-                else:
-                    requested = None
-                max_depth = self.query.max_depth
-                index_end = len(self.model._meta.fields)
-                extra_select = self.query.extra_select.keys()
-                for row in self.query.results_iter():
-                    if fill_cache:
-                        obj, index_end = get_cached_row(self.model, row, 0, max_depth,
-                                requested=requested)
-                    else:
-                        obj = self.model(*row[:index_end])
-                    for i, k in enumerate(extra_select):
-                        setattr(obj, k, row[index_end + i])
-                    yield obj
+                return self.query.__iter__()
 
             def count(self):
                 """
@@ -114,7 +100,7 @@
                 """
                 Deletes the records in the current QuerySet.
                 """
-                pass
+                self.query.session.delete(self.query)
             delete.alters_data = True
 
             def update(self, **kwargs):
@@ -241,20 +227,33 @@
 
             def order_by(self, *field_names):
                 """Returns a new QuerySet instance with the ordering changed."""
-                assert self.query.can_filter(), \
-                        "Cannot reorder a query once a slice has been taken."
-                obj = self._clone()
-                obj.query.clear_ordering()
-                obj.query.add_ordering(*field_names)
-                return obj
+                for order in field_names:
+                    desc = False
+                    if order[0] == "-":
+                        desc = True
+                        order = order[1:]
+                    if "." in order:
+                        table, field = order.split(".")
+                        # rel_name = cls.DjangoAlchemy._related_objects[table_model[table]]
+                        # o = getattr(table_model[table].DjangoAlchemy.c, field)
+                        query = query.join(rel_name)
+                    else:
+                        o = getattr(self.model.c, order)
+
+                    if desc:
+                        from sqlalchemy import desc
+                        query = query.order_by(desc(o))
+                    else:
+                        query = query.order_by(o)        
+                return query
 
             def distinct(self, true_or_false=True):
                 """
                 Returns a new QuerySet instance that will select only distinct results.
                 """
-                obj = self._clone()
-                obj.query.distinct = true_or_false
-                return obj
+                clone = self._clone
+                clone.query._distinct = true_or_false
+                return clone
 
             def extra(self, select=None, where=None, params=None, tables=None,
                     order_by=None):
@@ -291,7 +290,7 @@
             def _clone(self, klass=None, setup=False, **kwargs):
                 if klass is None:
                     klass = self.__class__
-                c = klass(model=self.model, query=self.query.clone())
+                c = klass(model=self.model, query=self.query._clone())
                 c.__dict__.update(kwargs)
                 if setup and hasattr(c, '_setup_query'):
                     c._setup_query()

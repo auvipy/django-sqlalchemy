@@ -23,9 +23,9 @@ QUERY_TERMS_MAPPING = {
     'search': None,
     'regex': None, 
     'iregex': None,
-)
+}
 
-def parse_filter(filter_expr, model):
+def parse_filter(model, **kwargs):
     """
     Add a single filter to the query. The 'filter_expr' is a pair:
     (filter_string, value). E.g. ('name__contains', 'fred')
@@ -34,26 +34,30 @@ def parse_filter(filter_expr, model):
     automatically trim the final join group (used internally when
     constructing nested queries).
     """
-    arg, value = filter_expr
-    parts = arg.split(LOOKUP_SEP)
-    if not parts:
-        raise FieldError("Cannot parse keyword query %r" % arg)
+    query = model.query._clone()
     
-    # Work out the lookup type and remove it from 'parts', if necessary.
-    if len(parts) == 1 or parts[-1] not in self.query_terms:
-        lookup_type = 'exact'
-    else:
-        lookup_type = parts.pop()
+    for filter_expr in [(k, v) for k, v in kwargs.items()]:
+        arg, value = filter_expr
+        parts = arg.split(LOOKUP_SEP)
+        if not parts:
+            raise FieldError("Cannot parse keyword query %r" % arg)
+    
+        # Work out the lookup type and remove it from 'parts', if necessary.
+        if len(parts) == 1 or parts[-1] not in QUERY_TERMS_MAPPING:
+            lookup_type = 'exact'
+        else:
+            lookup_type = parts.pop()
 
-    # Interpret '__exact=None' as the sql 'is NULL'; otherwise, reject all
-    # uses of None as a query value.
-    if value is None:
-        if lookup_type != 'exact':
-            raise ValueError("Cannot use None as a query value")
-        lookup_type = 'isnull'
-        value = True
-    elif callable(value):
-        value = value()
-    
-    q = model.__name__ + "." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
-    return model.query.filter(eval(q))
+        # Interpret '__exact=None' as the sql 'is NULL'; otherwise, reject all
+        # uses of None as a query value.
+        if value is None:
+            if lookup_type != 'exact':
+                raise ValueError("Cannot use None as a query value")
+            lookup_type = 'isnull'
+            value = True
+        elif callable(value):
+            value = value()
+        
+        q = "model.c." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
+        query = query.filter(eval(q))
+    return query
