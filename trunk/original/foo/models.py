@@ -8,4 +8,4 @@ class Category(models.Model):
     created_at = models.DateTimeField(default=datetime.datetime.now)
     
     def __unicode__(self):
-        return "Category"
+        return self.name
