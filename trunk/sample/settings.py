@@ -24,7 +24,7 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 # DJANGO_SQLALCHEMY_DBURI = "sqlite://%(current_dir_uri)s/devdata.sqlite"
 
 DJANGO_SQLALCHEMY_DBURI = "sqlite:///test.sqlite"
-DJANGO_SQLALCHEMY_ECHO = False
+DJANGO_SQLALCHEMY_ECHO = True
 
 # Local time zone for this installation. Choices can be found here:
 # http://en.wikipedia.org/wiki/List_of_tz_zones_by_name

@@ -25,7 +25,7 @@ QUERY_TERMS_MAPPING = {
     'iregex': None,
 }
 
-def parse_filter(model, **kwargs):
+def parse_filter(model, exclude, **kwargs):
     """
     Add a single filter to the query. The 'filter_expr' is a pair:
     (filter_string, value). E.g. ('name__contains', 'fred')
@@ -58,6 +58,10 @@ def parse_filter(model, **kwargs):
         elif callable(value):
             value = value()
         
+        if isinstance(value, basestring) and lookup_type not in ('contains', 'icontains', 'startswith', 'istartswith', 'endswith', 'iendswith'):
+            value = '"%s"' % value
         q = "model.c." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
+        if exclude:
+            q = "~(%s)" % q
         query = query.filter(eval(q))
     return query
