@@ -3,6 +3,7 @@ from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDa
 
 try:
     import sqlalchemy as sa
+    from sqlalchemy.sql import operators
 except ImportError, e:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured("Error loading sqlalchemy module: %s" % e)
@@ -40,7 +41,13 @@ class DatabaseOperations(BaseDatabaseOperations):
                 combined = self._clone()
                 combined.query.combine(other.query, sql.OR)
                 return combined
-
+            
+            def __repr__(self):
+                return repr(list(iter(self)))
+            
+            def __len__(self):
+                return len(list(iter(self)))
+            
             def __iter__(self):
                 return self.query.__iter__()
                 
@@ -196,17 +203,17 @@ class DatabaseOperations(BaseDatabaseOperations):
                 Returns a new QuerySet instance with the args ANDed to the existing
                 set.
                 """
-                return self._filter_or_exclude(False, **kwargs)
+                return self._filter_or_exclude(False, *args, **kwargs)
 
             def exclude(self, *args, **kwargs):
                 """
                 Returns a new QuerySet instance with NOT (args) ANDed to the existing
                 set.
                 """
-                return self._filter_or_exclude(True, **kwargs)
+                return self._filter_or_exclude(True, *args, **kwargs)
 
-            def _filter_or_exclude(self, exclude, **kwargs):
-                return parse_filter(self.model, kwargs)
+            def _filter_or_exclude(self, exclude, *args, **kwargs):
+                return parse_filter(self.model, exclude, **kwargs)
 
             def complex_filter(self, filter_obj):
                 """
@@ -300,7 +307,11 @@ class DatabaseOperations(BaseDatabaseOperations):
                 Reverses the ordering of the queryset.
                 """
                 clone = self._clone()
-                clone.query.standard_ordering = not clone.query.standard_ordering
+                for field in clone.query._order_by:
+                    if field.modifier == operators.desc_op: 
+                        field.modifier = operators.asc_op
+                    else:
+                        field.modifier = operators.desc_op
                 return clone
 
             ###################

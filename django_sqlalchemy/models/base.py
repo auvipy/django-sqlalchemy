@@ -722,6 +722,8 @@ def _install_autosetup_triggers(cls, entity_name=None):
     #column attributes, but still...
     for name in ('c', 'table', 'mapper', 'query'):
         setattr(cls, name, TriggerAttribute(name))
+    
+    #TODO: trigger all managers so when they are accessed the class is setup
 
     cls._has_triggers = True
 
