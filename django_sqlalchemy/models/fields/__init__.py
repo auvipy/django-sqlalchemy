@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models.fields import NOT_PROVIDED
 from django.conf import settings
 from sqlalchemy import Column
 from sqlalchemy.orm import deferred, synonym
@@ -39,7 +40,10 @@ class Field(models.Field, Property):
     def create_col(self):
         # create the base kwargs dict for sa
         kwargs = dict(nullable=self.null,
-                index=self.db_index, unique=self.unique, default=self.default)
+                index=self.db_index, unique=self.unique)
+        # sa expects an __init__ on class callables. 0.4.3 schema.py:811
+        if self.default is not NOT_PROVIDED:
+            kwargs["default"] = self.default
         # dump in field specific kwargs and overrides
         kwargs.update(self.sa_column_kwargs())
         self.column = Column(self.name, self.sa_column_type(), 
