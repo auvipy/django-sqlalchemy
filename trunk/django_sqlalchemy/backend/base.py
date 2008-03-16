@@ -43,7 +43,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 return combined
             
             def __len__(self):
-                return len(list(iter(self)))
+                return self.count()
             
             def __iter__(self):
                 return self.query.__iter__()
@@ -118,6 +118,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def in_bulk(self, id_list):
                 """
+                TODO:need to map
                 Returns a dictionary mapping each of the given IDs to the object with
                 that ID.
                 """
@@ -137,6 +138,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def update(self, **kwargs):
                 """
+                TODO:need to map
                 Updates all elements in the current QuerySet, setting all the given
                 fields to the appropriate values.
                 """
@@ -151,6 +153,9 @@ class DatabaseOperations(BaseDatabaseOperations):
             ##################################################
 
             def values(self, *fields):
+                """
+                TODO:need to map
+                """
                 # >>> b = a.from_statement(select([Category.c.name]))
                 # >>> print b
                 # SELECT foo_category.name AS foo_category_name 
@@ -159,6 +164,9 @@ class DatabaseOperations(BaseDatabaseOperations):
                 return self._clone(klass=ValuesQuerySet, setup=True, _fields=fields)
 
             def valueslist(self, *fields, **kwargs):
+                """
+                TODO:need to map
+                """
                 flat = kwargs.pop('flat', False)
                 if kwargs:
                     raise TypeError('Unexpected keyword arguments to valueslist: %s'
@@ -170,6 +178,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def dates(self, field_name, kind, order='ASC'):
                 """
+                TODO:need to map
                 Returns a list of datetime objects representing all available dates
                 for the given field_name, scoped to 'kind'.
                 """
@@ -214,6 +223,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def complex_filter(self, filter_obj):
                 """
+                TODO:need to map
                 Returns a new QuerySet instance with filter_obj added to the filters.
                 filter_obj can be a Q object (or anything with an add_to_query()
                 method) or a dictionary of keyword lookup arguments.
@@ -228,6 +238,7 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def select_related(self, *fields, **kwargs):
                 """
+                TODO:need to map
                 Returns a new QuerySet instance that will select related objects. If
                 fields are specified, they must be ForeignKey fields and only those
                 related objects are included in the selection.
@@ -250,7 +261,10 @@ class DatabaseOperations(BaseDatabaseOperations):
                 return obj
 
             def order_by(self, *field_names):
-                """Returns a new QuerySet instance with the ordering changed."""
+                """
+                TODO:need to map
+                Returns a new QuerySet instance with the ordering changed.
+                """
                 for order in field_names:
                     desc = False
                     if order[0] == "-":
@@ -275,13 +289,14 @@ class DatabaseOperations(BaseDatabaseOperations):
                 """
                 Returns a new QuerySet instance that will select only distinct results.
                 """
-                clone = self._clone
+                clone = self._clone()
                 clone.query._distinct = true_or_false
                 return clone
 
             def extra(self, select=None, where=None, params=None, tables=None,
                     order_by=None):
                 """
+                TODO:need to map
                 Add extra SQL fragments to the query.
                 """
                 assert self.query.can_filter(), \
