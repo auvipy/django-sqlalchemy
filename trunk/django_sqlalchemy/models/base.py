@@ -863,7 +863,11 @@ class Model(models.Model):
         return self._global_session.merge(self, *args, **kwargs)
 
     def save(self, *args, **kwargs):
-        return self._global_session.save(self, *args, **kwargs)
+        # Here we force a flush which will commit the transaction. this will
+        # be bad once we need to support transactions with django.
+        obj = self._global_session.save(self, *args, **kwargs)
+        self.flush()
+        return obj
 
     def update(self, *args, **kwargs):
         return self._global_session.update(self, *args, **kwargs)
