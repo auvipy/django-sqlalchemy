@@ -803,6 +803,25 @@ def cleanup_entities(entities):
         desc.constraints = []
         desc.properties = {}
 
+class ObjectSessionProxy(object):
+    def __init__(self, session, instance):
+        self.session = session
+        self.instance = instance
+        
+    def flush(self):
+        return self.session.flush([self.instance])
+    
+    def delete(self):
+        return self.session.delete(self.instance)
+    
+    def expire(self):
+        return self.session.expire(self.instance)
+    
+    def refresh(self):
+        return self.session.refresh(self.instance)
+    
+    def expunge(self):
+        return self.session.expunge(self.instance)
 
 class Model(models.Model):
     '''
@@ -837,21 +856,9 @@ class Model(models.Model):
         for key, value in kwargs.items():
             setattr(self, key, value)
     
-    # session methods
-    def flush(self, *args, **kwargs):
-        return object_session(self).flush([self], *args, **kwargs)
-
-    def delete(self, *args, **kwargs):
-        return object_session(self).delete(self, *args, **kwargs)
-
-    def expire(self, *args, **kwargs):
-        return object_session(self).expire(self, *args, **kwargs)
-
-    def refresh(self, *args, **kwargs):
-        return object_session(self).refresh(self, *args, **kwargs)
-
-    def expunge(self, *args, **kwargs):
-        return object_session(self).expunge(self, *args, **kwargs)
+    def _get_session(self):
+        return ObjectSessionProxy(object_session(self), self)
+    session = property(_get_session)
 
     # This bunch of session methods, along with all the query methods below 
     # only make sense when using a global/scoped/contextual session.
@@ -866,7 +873,7 @@ class Model(models.Model):
         # Here we force a flush which will commit the transaction. this will
         # be bad once we need to support transactions with django.
         obj = self._global_session.save(self, *args, **kwargs)
-        self.flush()
+        self.session.flush()
         return obj
 
     def update(self, *args, **kwargs):
