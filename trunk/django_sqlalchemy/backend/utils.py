@@ -25,7 +25,7 @@ QUERY_TERMS_MAPPING = {
     'iregex': None,
 }
 
-def parse_filter(model, exclude, **kwargs):
+def parse_filter(queryset, exclude, **kwargs):
     """
     Add a single filter to the query. The 'filter_expr' is a pair:
     (filter_string, value). E.g. ('name__contains', 'fred')
@@ -34,7 +34,8 @@ def parse_filter(model, exclude, **kwargs):
     automatically trim the final join group (used internally when
     constructing nested queries).
     """
-    query = model.query._clone()
+    
+    query = queryset._clone()
     
     for filter_expr in [(k, v) for k, v in kwargs.items()]:
         arg, value = filter_expr
@@ -60,8 +61,9 @@ def parse_filter(model, exclude, **kwargs):
         
         if isinstance(value, basestring) and lookup_type not in ('contains', 'icontains', 'startswith', 'istartswith', 'endswith', 'iendswith'):
             value = '"%s"' % value
-        q = "model.c." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
+        q = "queryset.model.c." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
         if exclude:
             q = "~(%s)" % q
-        query = query.filter(eval(q))
+        import pdb
+        query.query = query.query.filter(eval(q))
     return query

@@ -42,9 +42,6 @@ class DatabaseOperations(BaseDatabaseOperations):
                 combined.query.combine(other.query, sql.OR)
                 return combined
             
-            def __repr__(self):
-                return repr(list(iter(self)))
-            
             def __len__(self):
                 return len(list(iter(self)))
             
@@ -213,7 +210,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 return self._filter_or_exclude(True, *args, **kwargs)
 
             def _filter_or_exclude(self, exclude, *args, **kwargs):
-                return parse_filter(self.model, exclude, **kwargs)
+                return parse_filter(self, exclude, **kwargs)
 
             def complex_filter(self, filter_obj):
                 """
