@@ -42,11 +42,14 @@ class DatabaseOperations(BaseDatabaseOperations):
                 combined.query.combine(other.query, sql.OR)
                 return combined
             
+            def __repr__(self):
+                return repr(self.query.all())
+            
             def __len__(self):
-                return self.count()
+                return self.query.count()
             
             def __iter__(self):
-                return self.query.__iter__()
+                return iter(self.query)
                 
             def __getitem__(self, k):
                 return self.query.__getitem__(k)
@@ -60,7 +63,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 An iterator over the results from applying this QuerySet to the
                 database.
                 """
-                return self.query.__iter__()
+                return iter(self.query)
 
             def count(self):
                 """
