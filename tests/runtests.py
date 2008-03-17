@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 import os, sys
 from os.path import join, dirname
 sys.path.insert(0, dirname(dirname(__file__)))
@@ -5,13 +6,41 @@ sys.path.insert(0, dirname(dirname(__file__)))
 import django_sqlalchemy
 sys.path.pop(0)
 
+def sqla_run_tests(test_labels, verbosity=1, interactive=True, extra_tests=[]):
+    # Again, mostly copies form django.test.simple.run_tests.
+    import unittest
+    from django.conf import settings
+    from django.test.simple import build_test, build_suite
+    from django.db.models.loading import get_apps, get_app
+    settings.DEBUG = False    
+    suite = unittest.TestSuite()
+    testfiles = []
+    if test_labels:
+        for label in test_labels:
+            fname = join(dirname(__file__), "regression", label)
+            testfiles.append(fname)
+    else:
+        dirs = os.listdir(join(dirname(__file__), "regression"))
+        dirs = [dname for dname in dirs if not dname.startswith(".")]
+        for test_file in dirs:
+            testfiles.append(join(dirname(__file__), "regression", test_file))
+
+    import doctest
+    total_fails = 0
+    total_tests = 0
+    
+    for fname in testfiles:
+        fails, tests = doctest.testfile(fname, verbose=True)
+        total_fails += fails
+    return total_fails
+
+
 def django_sqlalchemy_tests(verbosity, test_labels):
     from django.conf import settings
     settings.SITE_ID = 1
     settings.USE_I18N = True
 
-    from django.test.simple import run_tests
-    failures = run_tests(test_labels, verbosity=verbosity, interactive=False, )
+    failures = sqla_run_tests(test_labels, verbosity=verbosity, interactive=False, )
     if failures:
         sys.exit(failures)
 
