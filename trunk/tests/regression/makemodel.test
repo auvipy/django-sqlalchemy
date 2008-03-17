@@ -1,0 +1,17 @@
+>>> from regression.sample_app.models import Publisher
+>>> Publisher.query
+<sqlalchemy.orm.scoping.query object at 0x...>
+>>> from django.core.management import call_command
+>>> # Should this issue create statements for Publisher?
+>>> # Or do we need a whole app structure?
+>>> call_command('syncdb')
+2008... INFO sqlalchemy.engine.base.Engine.0x... PRAGMA table_info("sample_app_publisher")
+2008... INFO sqlalchemy.engine.base.Engine.0x... {}
+2008... INFO sqlalchemy.engine.base.Engine.0x... 
+CREATE TABLE sample_app_publisher (
+    id INTEGER NOT NULL, 
+    username VARCHAR(32) NOT NULL, 
+    PRIMARY KEY (id)
+)
+2008... INFO sqlalchemy.engine.base.Engine.0x... {}
+2008... INFO sqlalchemy.engine.base.Engine.0x... COMMIT
