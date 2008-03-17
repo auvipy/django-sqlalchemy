@@ -14,23 +14,23 @@ QUERY_TERMS_MAPPING = {
     'lte': operator.le
 }
 
-def lookup_query_terms(lookup_type, field, value):
+def lookup_query_expression(lookup_type, field, value):
     if lookup_type in QUERY_TERMS_MAPPING:
         return curry(QUERY_TERMS_MAPPING[lookup_type], field, value)
     elif lookup_type == 'contains':
         return curry(field.like, '%%%s%%' % value)
     elif lookup_type == 'icontains':
-        raise NotImplemented()
+        return curry(field.ilike, '%%%s%%' % value)
     elif lookup_type == 'in':
-        raise NotImplemented()
+        return curry(field.in_, value)
     elif lookup_type == 'startswith':        
-        raise NotImplemented()
+        return curry(field.like, '%s%%' % value)
     elif lookup_type == 'istartswith':
-        raise NotImplemented()
+        return curry(field.ilike, '%s%%' % value)
     elif lookup_type == 'endswith':
-        raise NotImplemented()
+        return curry(field.like, '%%%s' % value)
     elif lookup_type == 'iendswith':
-        raise NotImplemented()
+        return curry(field.ilike, '%%%s' % value)
     elif lookup_type == 'range':
         raise NotImplemented()
     elif lookup_type == 'year':        
@@ -46,7 +46,10 @@ def lookup_query_terms(lookup_type, field, value):
     elif lookup_type == 'iregex':
         raise NotImplemented()
     elif lookup_type == 'isnull': 
-        return curry(operator.eq, field, None)
+        if value:
+            return curry(operator.eq, field, None)
+        else:
+            return curry(operator.ne, field, None)
     else:
         return None
         
@@ -79,9 +82,10 @@ def parse_filter(queryset, exclude, **kwargs):
         
         field = reduce(lambda x, y: getattr(x, y), parts)
     
-        op = lookup_query_terms(lookup_type, field, value)
+        op = lookup_query_expression(lookup_type, field, value)
         expression = op()
+        
         if exclude:
-            expression = operator.not_(expression)
+            expression = ~(expression)
         query.query = query.query.filter(expression)
     return query
