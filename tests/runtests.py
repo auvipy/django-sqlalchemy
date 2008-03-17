@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 import os, sys
-from os.path import join, dirname
+from os.path import join, dirname, basename
 sys.path.insert(0, dirname(dirname(__file__)))
 # This thing ensures that we're importing the local, development version. 
 import django_sqlalchemy
@@ -20,17 +20,18 @@ def sqla_run_tests(test_labels, verbosity=1, interactive=True, extra_tests=[]):
             fname = join(dirname(__file__), "regression", label)
             testfiles.append(fname)
     else:
-        dirs = os.listdir(join(dirname(__file__), "regression"))
-        dirs = [dname for dname in dirs if not dname.startswith(".")]
+        from glob import glob
+        dirs = glob(join(dirname(__name__), "regression/*.test"))
+        dirs = [join(dirname(__name__), bname) for bname in map(basename, dirs)]
         for test_file in dirs:
-            testfiles.append(join(dirname(__file__), "regression", test_file))
+            testfiles.append(test_file)
 
     import doctest
     total_fails = 0
-    total_tests = 0
-    
     for fname in testfiles:
-        fails, tests = doctest.testfile(fname, verbose=True)
+        fails, tests = doctest.testfile(
+            fname, package="regression",
+            optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
         total_fails += fails
     return total_fails
 
@@ -42,7 +43,7 @@ def django_sqlalchemy_tests(verbosity, test_labels):
 
     failures = sqla_run_tests(test_labels, verbosity=verbosity, interactive=False, )
     if failures:
-        sys.exit(failures)
+        print "%d failues" % failures
 
 
 if __name__ == "__main__":
