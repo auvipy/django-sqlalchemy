@@ -50,12 +50,16 @@ if __name__ == "__main__":
     from optparse import OptionParser
     usage = "%prog [options] [model model model ...]"
     parser = OptionParser(usage=usage)
-    parser.add_option('-v','--verbosity', action='store', dest='verbosity', default='0',
+    parser.add_option(
+        '-v','--verbosity',
+        action='store', dest='verbosity', default='0',
         type='choice', choices=['0', '1', '2'],
         help='Verbosity level; 0=minimal output, 1=normal output, 2=all output')
     parser.add_option(
         '--settings',
-        help='Python path to settings module, e.g. "myproject.settings". If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment variable will be used.',
+        help='Python path to settings module, e.g. "myproject.settings". '
+        'If this isn\'t provided, the DJANGO_SETTINGS_MODULE environment '
+        'variable will be used.',
         default="settings_sqlite"
         )
     options, args = parser.parse_args()
