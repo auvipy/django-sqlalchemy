@@ -1,0 +1,9 @@
+>>> from django_sqlalchemy import model
+>>> class Publisher(models.Model):
+...     username = models.CharField(max_length=32)
+...     
+>>> from django.core.management import call_command
+>>> # Should this issue create statements for Publisher?
+>>> # Or do we need a whole app structure?
+>>> call_command('syncdb')
+>>> 
