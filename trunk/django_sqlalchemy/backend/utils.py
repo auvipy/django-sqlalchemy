@@ -1,30 +1,55 @@
+import operator
+
 from django.db.models.sql.constants import *
 from django.core.exceptions import FieldError
+from django.db.models.sql.constants import QUERY_TERMS
+from django.utils.functional import curry
 
 QUERY_TERMS_MAPPING = {
-    'exact': '__eq__(%s)', 
-    'iexact': '__eq__(%s)', 
-    'contains': 'like("%%%s%%")', 
-    'icontains': 'like("%%%s%%")',
-    'gt': '__gt__(%s)', 
-    'gte': '__gte__(%s)', 
-    'lt': '__lt__(%s)', 
-    'lte': '__lte__(%s)', 
-    'in': 'in(%s)',
-    'startswith': 'like("%s%%")', 
-    'istartswith': 'like("%s%%")', 
-    'endswith': 'like("%%%s")', 
-    'iendswith': 'like("%%%s")',
-    'range': 'between(%s, %s)', 
-    'year': None, 
-    'month': None, 
-    'day': None, 
-    'isnull': '__eq__(None)', 
-    'search': None,
-    'regex': None, 
-    'iregex': None,
+    'exact': operator.eq, 
+    'iexact': operator.eq, 
+    'gt': operator.gt, 
+    'gte': operator.ge, 
+    'lt': operator.lt, 
+    'lte': operator.le
 }
 
+def lookup_query_terms(lookup_type, field, value):
+    if lookup_type in QUERY_TERMS_MAPPING:
+        return curry(QUERY_TERMS_MAPPING[lookup_type], field, value)
+    elif lookup_type == 'contains':
+        return curry(field.like, '%%%s%%' % value)
+    elif lookup_type == 'icontains':
+        raise NotImplemented()
+    elif lookup_type == 'in':
+        raise NotImplemented()
+    elif lookup_type == 'startswith':        
+        raise NotImplemented()
+    elif lookup_type == 'istartswith':
+        raise NotImplemented()
+    elif lookup_type == 'endswith':
+        raise NotImplemented()
+    elif lookup_type == 'iendswith':
+        raise NotImplemented()
+    elif lookup_type == 'range':
+        raise NotImplemented()
+    elif lookup_type == 'year':        
+        raise NotImplemented()
+    elif lookup_type == 'month':
+        raise NotImplemented()
+    elif lookup_type == 'day':
+        raise NotImplemented()
+    elif lookup_type == 'search':
+        raise NotImplemented()
+    elif lookup_type == 'regex':
+        raise NotImplemented()
+    elif lookup_type == 'iregex':
+        raise NotImplemented()
+    elif lookup_type == 'isnull': 
+        return curry(operator.eq, field, None)
+    else:
+        return None
+        
 def parse_filter(queryset, exclude, **kwargs):
     """
     Add a single filter to the query. The 'filter_expr' is a pair:
@@ -39,31 +64,24 @@ def parse_filter(queryset, exclude, **kwargs):
     
     for filter_expr in [(k, v) for k, v in kwargs.items()]:
         arg, value = filter_expr
-        parts = arg.split(LOOKUP_SEP)
+        parts = [queryset.model] + arg.split(LOOKUP_SEP)
         if not parts:
             raise FieldError("Cannot parse keyword query %r" % arg)
     
         # Work out the lookup type and remove it from 'parts', if necessary.
-        if len(parts) == 1 or parts[-1] not in QUERY_TERMS_MAPPING:
+        if len(parts) == 1 or parts[-1] not in QUERY_TERMS:
             lookup_type = 'exact'
         else:
             lookup_type = parts.pop()
-
-        # Interpret '__exact=None' as the sql 'is NULL'; otherwise, reject all
-        # uses of None as a query value.
-        if value is None:
-            if lookup_type != 'exact':
-                raise ValueError("Cannot use None as a query value")
-            lookup_type = 'isnull'
-            value = True
-        elif callable(value):
+                
+        if callable(value):
             value = value()
         
-        if isinstance(value, basestring) and lookup_type not in ('contains', 'icontains', 'startswith', 'istartswith', 'endswith', 'iendswith'):
-            value = '"%s"' % value
-        q = "queryset.model.c." + ".".join(parts) + "." + (QUERY_TERMS_MAPPING[lookup_type] % value)
+        field = reduce(lambda x, y: getattr(x, y), parts)
+    
+        op = lookup_query_terms(lookup_type, field, value)
+        expression = op()
         if exclude:
-            q = "~(%s)" % q
-        import pdb
-        query.query = query.query.filter(eval(q))
+            expression = operator.not_(expression)
+        query.query = query.query.filter(expression)
     return query
