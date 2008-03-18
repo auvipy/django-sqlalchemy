@@ -54,7 +54,8 @@ class ModelBase(models.base.ModelBase):
             auto.name = "id"
             our_stuff.append(auto.create_column())
         for field in cls._meta.fields:
-            if isinstance(field, Field):
+            from django_sqlalchemy.models.fields.related import ForeignKey
+            if isinstance(field, (Field, ForeignKey)):
                 our_stuff.append(field.create_column())
         
         autoload = cls.__dict__.get('__autoload__')
