@@ -1,14 +1,12 @@
 from django.db import models
 from django.db.models.fields import NOT_PROVIDED
 from django.conf import settings
+
 from sqlalchemy import Column
 from sqlalchemy.orm import deferred, synonym
 from sqlalchemy.types import *
-from sqlalchemy.ext.associationproxy import association_proxy
-from django_sqlalchemy.models.statements import ClassMutator
-from django_sqlalchemy.models.properties import Property
 
-class Field(models.Field, Property):
+class Field(models.Field):
     
     def __init__(self, *args, **kwargs):
         self.synonym = kwargs.pop('synonym', None)
@@ -16,31 +14,14 @@ class Field(models.Field, Property):
         self.colname = kwargs.pop('name', None)
         self.column = None
         self.property = None
-        # call django's init. this is here because I cannot figure out how to call django's Field.__init__
-        # due to the way the maxlength metaclass is wired up.  it does crazy things, calling back to the 
-        # derived class causing an infinite loop.
-        Property.__init__(self, *args, **kwargs)
+        
         models.Field.__init__(self, **kwargs)
-    
-    def attach(self, entity, name):
-        # If no colname was defined (through the 'colname' kwarg), set
-        # it to the name of the attr.
-        if self.colname is None:
-            self.colname = name
-        super(Field, self).attach(entity, name)
-    
-    def create_pk_cols(self):
-        if self.primary_key:
-            self.create_col()
-    
-    def create_non_pk_cols(self):
-        if not self.primary_key:
-            self.create_col()
     
     def create_col(self):
         # create the base kwargs dict for sa
         kwargs = dict(nullable=self.null,
-                index=self.db_index, unique=self.unique)
+                      index=self.db_index, 
+                      unique=self.unique)
         # sa expects an __init__ on class callables. 0.4.3 schema.py:811
         if self.default is not NOT_PROVIDED:
             kwargs["default"] = self.default
@@ -51,22 +32,6 @@ class Field(models.Field, Property):
                 **kwargs)
         self.entity._descriptor.add_column(self.column)
         
-    def create_properties(self):
-        if self.deferred:
-            group = None
-            if isinstance(self.deferred, basestring):
-                group = self.deferred
-            self.property = deferred(self.column, group=group)
-        elif self.name != self.colname:
-            self.property = self.column
-
-        if self.property:
-            self.entity._descriptor.add_property(self.name, self.property)
-
-        if self.synonym:
-            self.entity._descriptor.add_property(self.synonym, 
-                                                 synonym(self.name))
-    
     def sa_column_type(self):
         raise NotImplementedError
     
