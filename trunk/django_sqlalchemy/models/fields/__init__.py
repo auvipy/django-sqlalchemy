@@ -17,7 +17,7 @@ class Field(models.Field):
         
         models.Field.__init__(self, **kwargs)
     
-    def create_col(self):
+    def create_column(self):
         # create the base kwargs dict for sa
         kwargs = dict(nullable=self.null,
                       index=self.db_index, 
@@ -30,7 +30,7 @@ class Field(models.Field):
         self.column = Column(self.name, self.sa_column_type(), 
                 *self.sa_column_args(),
                 **kwargs)
-        self.entity._descriptor.add_column(self.column)
+        return self.column
         
     def sa_column_type(self):
         raise NotImplementedError

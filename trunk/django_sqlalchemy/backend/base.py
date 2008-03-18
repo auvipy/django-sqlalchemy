@@ -30,7 +30,7 @@ class DatabaseOperations(BaseDatabaseOperations):
             """    
             def __init__(self, model=None, query=None):
                 self.model = model
-                self.query = query or self.model.query()
+                self.query = query or self.model.query
             
             def __and__(self, other):
                 combined = self._clone()
