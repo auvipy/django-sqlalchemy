@@ -4,6 +4,8 @@ from django_sqlalchemy import models
 # Create your models here.
 class Category(models.Model):
     """Category Class"""
+    __tablename__ = 'foo_category'
+    
     name = models.CharField(max_length=100)
     created_at = models.DateTimeField(default=datetime.datetime.now)
     

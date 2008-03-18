@@ -85,4 +85,5 @@ TEMPLATE_DIRS = (
 INSTALLED_APPS = (
     'django_sqlalchemy',
     'sample.foo',
+    'sample.bar'
 )
