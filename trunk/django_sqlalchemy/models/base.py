@@ -1,3 +1,5 @@
+
+from django_sqlalchemy.backend.base import metadata, Session
 from django_sqlalchemy.models import *
 from django.db import models
 from sqlalchemy import *
@@ -5,16 +7,6 @@ from sqlalchemy.schema import Table, SchemaItem, Column, MetaData
 from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation, sessionmaker, scoped_session
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
-
-engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI)
-Session = scoped_session(sessionmaker(bind=engine, autoflush=True, transactional=True))
-session = Session()
-
-# default metadata
-metadata = sqlalchemy.MetaData(bind=engine)
-
-if getattr(settings, 'DJANGO_SQLALCHEMY_ECHO'):
-    metadata.bind.echo = settings.DJANGO_SQLALCHEMY_ECHO
 
 __all__ = ['Model', 'declarative_base', 'declared_synonym']
 
@@ -122,6 +114,7 @@ class Model(models.Model):
     
     metadata = metadata
     _decl_class_registry = {}
+    
     def __init__(self, **kwargs):
         for k in kwargs:
             if not hasattr(type(self), k):

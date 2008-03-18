@@ -1,7 +1,7 @@
 
 from cStringIO import StringIO
 from sqlalchemy import create_engine
-from django_sqlalchemy.models import metadata
+from django_sqlalchemy.backend.base import metadata
 from django.core.management.base import AppCommand, CommandError
 from django.conf import settings
 from django.db.models.loading import get_models

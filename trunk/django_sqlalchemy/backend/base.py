@@ -1,24 +1,35 @@
+
+from django.conf import settings
 from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseOperations, util
 # from django_sqlalchemy.backend.query import QuerySetMixin
 
 try:
-    import sqlalchemy as sa
+    from sqlalchemy import create_engine, MetaData
     from sqlalchemy.sql import operators
 except ImportError, e:
     from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured("Error loading sqlalchemy module: %s" % e)
 
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI)
+Session = scoped_session(sessionmaker(bind=engine, autoflush=True, transactional=True))
+session = Session()
+
+# default metadata
+metadata = MetaData(bind=engine)
+
+if getattr(settings, 'DJANGO_SQLALCHEMY_ECHO'):
+    metadata.bind.echo = settings.DJANGO_SQLALCHEMY_ECHO
+
 DatabaseError = Exception
 IntegrityError = Exception
-
-# Session = sessionmaker()
 
 class DatabaseFeatures(BaseDatabaseFeatures):
     uses_custom_queryset = True
 
 class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
-        from django_sqlalchemy.models import metadata
         return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
     
     def query_set_class(self, DefaultQuerySet):
@@ -379,6 +390,5 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     ops = DatabaseOperations()
     
     def _cursor(self, settings):
-        from django_sqlalchemy.models import metadata
-        return metadata.bind
+        return session.connection().connection.cursor()
 
