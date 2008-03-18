@@ -1,6 +1,6 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
-from django_sqlalchemy.models import *
+from django_sqlalchemy.models import metadata
 
 class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
@@ -13,4 +13,4 @@ class Command(NoArgsCommand):
     help = "Create the database tables for all apps in INSTALLED_APPS whose tables haven't already been created."
     
     def handle_noargs(self, **options):
-        setup_all(True)
+        metadata.create_all()
