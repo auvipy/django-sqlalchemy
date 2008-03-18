@@ -4,9 +4,9 @@ from sqlalchemy.types import *
 from django_sqlalchemy.models.fields import *
 from django_sqlalchemy.models.fields.related import ForeignKey
 from django.conf import settings
-from django_sqlalchemy.models.base import Model, metadata
+from django_sqlalchemy.models.base import Model
 
-__all__ = ['metadata', 'Field', 'AutoField', 'CharField', 'PhoneNumberField'] + \
+__all__ = ['Field', 'AutoField', 'CharField', 'PhoneNumberField'] + \
            sqlalchemy.types.__all__
 
 
