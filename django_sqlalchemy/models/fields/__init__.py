@@ -165,7 +165,7 @@ class FilePathField(models.FilePathField, Field):
                                             name=kwargs.get('name', None), 
                                             path=kwargs.get('path', ''), 
                                             match=kwargs.get('match', None), 
-                                            match=kwargs.get('recursive', False), **kwargs)
+                                            recursive=kwargs.get('recursive', False), **kwargs)
         Field.__init__(self, *args, **kwargs)
     
     def sa_column_type(self):
