@@ -14,7 +14,6 @@ class Command(AppCommand):
         engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI,
             strategy="mock",
             executor=buffer_output)
-        # TODO: make use of the app, see #1.
         metadata.create_all(engine,
             tables=[m.__table__ for m in get_models(app)])
         print buf.getvalue()
