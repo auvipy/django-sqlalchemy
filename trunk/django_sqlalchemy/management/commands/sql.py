@@ -1,8 +1,10 @@
+
 from cStringIO import StringIO
 from sqlalchemy import create_engine
 from django_sqlalchemy.models import metadata
 from django.core.management.base import AppCommand, CommandError
 from django.conf import settings
+from django.db.models.loading import get_models
 
 class Command(AppCommand):
     def handle_app(self, app, **options):
@@ -13,5 +15,6 @@ class Command(AppCommand):
             strategy="mock",
             executor=buffer_output)
         # TODO: make use of the app, see #1.
-        metadata.create_all(engine)
+        metadata.create_all(engine,
+            tables=[m.__table__ for m in get_models(app)])
         print buf.getvalue()
