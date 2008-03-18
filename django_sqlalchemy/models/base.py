@@ -1,9 +1,20 @@
 from django_sqlalchemy.models import *
 from django.db import models
+from sqlalchemy import *
 from sqlalchemy.schema import Table, SchemaItem, Column, MetaData
-from sqlalchemy.orm import synonym as _orm_synonym, mapper
+from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation, sessionmaker, scoped_session
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
+
+engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI)
+Session = scoped_session(sessionmaker(bind=engine, autoflush=True, transactional=True))
+session = Session()
+
+# default metadata
+metadata = sqlalchemy.MetaData(bind=engine)
+
+if getattr(settings, 'DJANGO_SQLALCHEMY_ECHO'):
+    metadata.bind.echo = settings.DJANGO_SQLALCHEMY_ECHO
 
 __all__ = ['Model', 'declarative_base', 'declared_synonym']
 
@@ -36,37 +47,30 @@ class ModelBase(models.base.ModelBase):
             return type.__init__(cls, classname, bases, dict_)
         
         cls._decl_class_registry[classname] = cls
-        our_stuff = {}
-        for k in dict_:
-            value = dict_[k]
-            if not isinstance(value, (Column, MapperProperty, declared_synonym)):
-                continue
-            if isinstance(value, declared_synonym):
-                value._setup(cls, k, our_stuff)
-            else:
-                prop = _deferred_relation(cls, value)
-                our_stuff[k] = prop
+        our_stuff = []
         
-        table = None
-        if '__table__' not in cls.__dict__:
-            if '__tablename__' in cls.__dict__:
-                tablename = cls.__tablename__
-                autoload = cls.__dict__.get('__autoload__')
-                if autoload:
-                    table_kw = {'autoload': True}
-                else:
-                    table_kw = {}
-                cls.__table__ = table = Table(tablename, cls.metadata, *[
-                    c for c in our_stuff.values() if isinstance(c, Column)
-                ], **table_kw)
+        if not isinstance(cls._meta.pk, AutoField):
+            auto = AutoField(verbose_name='ID', primary_key=True, auto_created=True)
+            auto.name = "id"
+            our_stuff.append(auto.create_column())
+        for field in cls._meta.fields:
+            if isinstance(field, Field):
+                our_stuff.append(field.create_column())
+        
+        autoload = cls.__dict__.get('__autoload__')
+        if autoload:
+            table_kw = {'autoload': True}
         else:
-            table = cls.__table__
+            table_kw = {}
+        
+        cls.__table__ = table = Table(cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
         
         inherits = cls.__mro__[1]
         inherits = cls._decl_class_registry.get(inherits.__name__, None)
         mapper_args = getattr(cls, '__mapper_args__', {})
         
-        cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=our_stuff, **mapper_args)
+        cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
+        cls.query = Session.query_property()
         return type.__init__(cls, classname, bases, dict_)
     
     def __setattr__(cls, key, value):
@@ -114,9 +118,6 @@ class Model(models.Model):
     The base class for all entities    
     '''
     __metaclass__ = ModelBase
-    
-    import pdb
-    pdb.set_trace()
     
     metadata = metadata
     _decl_class_registry = {}
