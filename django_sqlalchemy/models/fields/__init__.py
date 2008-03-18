@@ -9,12 +9,7 @@ from sqlalchemy.types import *
 class Field(models.Field):
     
     def __init__(self, *args, **kwargs):
-        self.synonym = kwargs.pop('synonym', None)
-        self.deferred = kwargs.pop('deferred', False)
-        self.colname = kwargs.pop('name', None)
-        self.column = None
-        self.property = None
-        
+        self.column = None        
         models.Field.__init__(self, **kwargs)
     
     def create_column(self):
