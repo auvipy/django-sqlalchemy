@@ -3,11 +3,13 @@ DEBUG = TEMPLATE_DEBUG = True
 
 DATABASE_ENGINE = 'django_sqlalchemy'
 DATABASE_NAME = ''
-DJANGO_SQLALCHEMY_DBURI = "sqlite://"
-DJANGO_SQLALCHEMY_ECHO = True
+DJANGO_SQLALCHEMY_DBURI = "sqlite:///testing.db"
+DJANGO_SQLALCHEMY_ECHO = False
 
 INSTALLED_APPS = (
     'django_sqlalchemy',
+    'regression.sample_app',
+    'regression.norelations',
     )
 
 TEMPLATE_LOADERS = (

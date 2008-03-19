@@ -1,10 +1,10 @@
 
-from django_sqlalchemy.backend.base import metadata, Session
+from django_sqlalchemy.backend.base import metadata, Session, session
 from django_sqlalchemy.models import *
 from django.db import models
 from sqlalchemy import *
 from sqlalchemy.schema import Table, SchemaItem, Column, MetaData
-from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation, sessionmaker, scoped_session
+from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
 
@@ -23,6 +23,12 @@ def is_base(cls):
 
 class ModelBase(models.base.ModelBase):
     def __new__(cls, name, bases, attrs):
+        # For reasons I don't entirely understand, both __new__ and
+        # __init__ can be called more than once. This seems to happen
+        # when using __import__ in a way that doesn't trigger a hit in
+        # sys.modules. So, for things like SA mapping and
+        # session-ating, we need to be aware that this should only be
+        # done the first time around.
         try:
             parents = [b for b in bases if issubclass(b, Model)]
             if not parents:
@@ -55,9 +61,9 @@ class ModelBase(models.base.ModelBase):
             our_stuff.append(auto.create_column())
         for field in cls._meta.fields:
             from django_sqlalchemy.models.fields.related import ForeignKey
-            # Field and ForeignKey here are our implementations of those
-            # fields.  It's specifically done that way to ignore things
-            # like Django's AutoField.
+            # Field and ForeignKey here are our implementations of
+            # those fields.  It's specifically done that way to ignore
+            # things like Django's AutoField.
             if isinstance(field, (Field, ForeignKey)):
                 our_stuff.append(field.create_column())
         
@@ -72,14 +78,21 @@ class ModelBase(models.base.ModelBase):
         
         # this sets up the Table declaration and also adds it as an __table__
         # attribute on our model class.
-        cls.__table__ = table = Table(cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
+        if not cls._meta.db_table in cls.metadata:
+            cls.__table__ = table = Table(cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
+        else:
+            # `table' is also assigned above. 
+            table = cls.__table__
+
         
         inherits = cls.__mro__[1]
         inherits = cls._decl_class_registry.get(inherits.__name__, None)
         mapper_args = getattr(cls, '__mapper_args__', {})
         
-        # finally we add the SA Mapper declaration
-        cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
+        # finally we add the SA Mapper declaration, if we haven't been 
+        if not hasattr(cls, "__mapper__"):
+            # 
+            cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
         # add the SA Query class onto our model class for easy querying
         cls.query = Session.query_property()
         return type.__init__(cls, classname, bases, dict_)
@@ -140,3 +153,31 @@ class Model(models.Model):
                                 (k, type(self).__name__))
             setattr(self, k, kwargs[k])
         return super(Model, self).__init__(**kwargs)
+    
+    def save(self):
+        """
+        Save the current instance. We force a flush so it mimics Django's 
+        behavior.
+        """
+        if self.pk is None:
+            obj = session.save(self)
+            session.commit()
+        else:
+            obj = self.update()
+        return obj
+    
+    def update(self, *args, **kwargs):
+        """
+        Updates direct against the database
+        """
+        obj = session.update(self, *args, **kwargs)
+        session.commit()
+        return obj
+        
+    def delete(self):
+        """
+        Deletes the current instance
+        """
+        obj = session.delete(self)
+        session.commit()
+        return obj

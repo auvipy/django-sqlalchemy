@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 import os, sys
-from os.path import join, dirname, basename
-sys.path.insert(0, dirname(dirname(__file__)))
-# This thing ensures that we're importing the local, development version. 
-import django_sqlalchemy
-sys.path.pop(0)
+from os.path import join, dirname, basename, abspath
 
 def sqla_run_tests(test_labels, verbosity=1, interactive=True, extra_tests=[]):
     # Again, mostly copies form django.test.simple.run_tests.
@@ -30,7 +26,7 @@ def sqla_run_tests(test_labels, verbosity=1, interactive=True, extra_tests=[]):
     total_fails = 0
     for fname in testfiles:
         fails, tests = doctest.testfile(
-            fname, package="regression",
+            basename(fname), package="regression",
             optionflags=doctest.ELLIPSIS|doctest.NORMALIZE_WHITESPACE)
         total_fails += fails
     return total_fails
@@ -43,10 +39,16 @@ def django_sqlalchemy_tests(verbosity, test_labels):
 
     failures = sqla_run_tests(test_labels, verbosity=verbosity, interactive=False, )
     if failures:
-        print "%d failues" % failures
+        print "%d failures" % failures
 
 
 if __name__ == "__main__":
+    __file__ = abspath(__file__)
+    basepath = dirname(dirname(__file__))
+    sys.path.insert(0, basepath)
+    # This thing ensures that we're importing the local, development version. 
+    import django_sqlalchemy
+    sys.path.pop(0)
     # Mostly copied from Django's tests/runtests.py
     from optparse import OptionParser
     usage = "%prog [options] [model model model ...]"

@@ -1,23 +1,10 @@
->>> from regression.sample_app.models import Reporter
+>>> from regression.sample_app.models import Reporter, Source, Article
 >>> from django.core.management import call_command
 >>> call_command('syncdb')
-2008... 17:09:10,095 INFO sqlalchemy.engine.base.Engine.0x... PRAGMA table_info("sample_app_reporter")
-2008... 17:09:10,096 INFO sqlalchemy.engine.base.Engine.0x... {}
-2008... 17:09:10,096 INFO sqlalchemy.engine.base.Engine.0x... PRAGMA table_info("sample_app_source")
-2008... 17:09:10,097 INFO sqlalchemy.engine.base.Engine.0x... {}
-2008... 17:09:10,098 INFO sqlalchemy.engine.base.Engine.0x... 
-CREATE TABLE sample_app_reporter (
-    id INTEGER NOT NULL, 
-    username VARCHAR(32) NOT NULL, 
-    PRIMARY KEY (id)
-)
-2008... 17:09:10,098 INFO sqlalchemy.engine.base.Engine.0x... {}
-2008... 17:09:10,099 INFO sqlalchemy.engine.base.Engine.0x... COMMIT
-2008... 17:09:10,100 INFO sqlalchemy.engine.base.Engine.0x... 
-CREATE TABLE sample_app_source (
-    id INTEGER NOT NULL, 
-    codename VARCHAR(32) NOT NULL, 
-    PRIMARY KEY (id)
-)
-2008... 17:09:10,100 INFO sqlalchemy.engine.base.Engine.0x... {}
-2008... 17:09:10,101 INFO sqlalchemy.engine.base.Engine.0x... COMMIT
+>>> john_anderson = Reporter.objects.create(username="janderson0")
+>>> w_mark_felt = Source.objects.create(codename="Deep Throat")
+>>> watergate = Article()
+>>> watergate.content = "Nixon, um, spied on ppl!"
+>>> watergate.save()
+>>> watergate.sources.add(w_mark_felt)
+>>> watergate.save()
