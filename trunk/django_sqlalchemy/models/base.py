@@ -41,28 +41,46 @@ class ModelBase(models.base.ModelBase):
         cls._decl_class_registry[classname] = cls
         our_stuff = []
         
+        # we need to check if we've already created the AutoField. 
+        # AutoField here represents the dj-sa AutoField not Django's
         if not isinstance(cls._meta.pk, AutoField):
+            # we need to add in the django-sqlalchemy version of the AutoField
+            # because the one that Django adds will not work for our purposes.
             auto = AutoField(verbose_name='ID', primary_key=True, auto_created=True)
+            # this might seem redundant but without it the name is not set 
+            # for SA
             auto.name = "id"
+            # now we can append the AutoField into our_stuff which gets
+            # used in the SA Table declaration
             our_stuff.append(auto.create_column())
         for field in cls._meta.fields:
             from django_sqlalchemy.models.fields.related import ForeignKey
+            # Field and ForeignKey here are our implementations of those
+            # fields.  It's specifically done that way to ignore things
+            # like Django's AutoField.
             if isinstance(field, (Field, ForeignKey)):
                 our_stuff.append(field.create_column())
         
+        # SA supports autoloading the model from database, but that will
+        # not work for Django. We're leaving this here just for future
+        # consideration.
         autoload = cls.__dict__.get('__autoload__')
         if autoload:
             table_kw = {'autoload': True}
         else:
             table_kw = {}
         
+        # this sets up the Table declaration and also adds it as an __table__
+        # attribute on our model class.
         cls.__table__ = table = Table(cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
         
         inherits = cls.__mro__[1]
         inherits = cls._decl_class_registry.get(inherits.__name__, None)
         mapper_args = getattr(cls, '__mapper_args__', {})
         
+        # finally we add the SA Mapper declaration
         cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
+        # add the SA Query class onto our model class for easy querying
         cls.query = Session.query_property()
         return type.__init__(cls, classname, bases, dict_)
     
