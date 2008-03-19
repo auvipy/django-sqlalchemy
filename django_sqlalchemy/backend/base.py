@@ -13,7 +13,8 @@ except ImportError, e:
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI)
-Session = scoped_session(sessionmaker(bind=engine, autoflush=True, transactional=True))
+Session = scoped_session(sessionmaker(
+    bind=engine, transactional=True))
 session = Session()
 
 # default metadata
@@ -371,10 +372,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 the InsertQuery class and is how Model.save() is implemented. It is not
                 part of the public API of QuerySet, though.
                 """
-                self._result_cache = None
-                query = self.query.clone(sql.InsertQuery)
-                query.insert_values(kwargs, _raw_values)
-                return query.execute_sql(_return_id)
+                print "howdy"
             _insert.alters_data = True
         return SqlAlchemyQuerySet
 
@@ -390,5 +388,11 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     ops = DatabaseOperations()
     
     def _cursor(self, settings):
-        return session.connection().connection.cursor()
+        from sqlalchemy.databases.sqlite import SQLiteDialect
+        conn = session.connection()
+        kwargs = {}
+        if isinstance(conn.engine.dialect, SQLiteDialect,):
+            from django.db.backends.sqlite3.base import SQLiteCursorWrapper
+            kwargs['factory'] = SQLiteCursorWrapper
+        return conn.connection.cursor(**kwargs)
 
