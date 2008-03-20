@@ -1,19 +1,24 @@
-We are using Git for version control on this project.  
+We are using Git for version control on this project.  The Git mainline is available from
+
+http://gitorious.org/projects/django-sqlalchemy  
 
 == Source Code Browser ==
 
 To browse the source code:
 
-http://github.com/mtrier/django-sqlalchemy/tree/master
+http://gitorious.org/projects/django-sqlalchemy/repos/mainline/trees/master
 
 == Git ==
 
-Clone our Git repository:
+If you'd like to contribute to django-sqlalchemy:
+
+  # Create a [http://gitorious.org/users/new gitorious account]
+  # [http://gitorious.org/projects/django-sqlalchemy/repos/mainline/new Clone] our mainline
+  # Commit changes to your local clone
+  # Submit a Merge Request
+
+You can also just clone our mainline:
 
 {{{
-git clone git://github.com/mtrier/django-sqlalchemy.git
+git clone git://gitorious.org/django-sqlalchemy/mainline.git
 }}}
-
-Download a tarball of the master branch:
-
-http://github.com/mtrier/django-sqlalchemy/tarball/master
