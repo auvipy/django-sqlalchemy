@@ -23,7 +23,13 @@ The following management commands need to be overridden and replaced with SQLAlc
 
 == Declarative Mapper ==
 
-The basics for the declarative mapping are already in place and working properly.  As we begin testing we're sure to identify areas that need to be further explored.  One area for greater functionality down the road is to expose more of the SA abilities within our mapped model.   
+  * Basic Models - The basics for the declarative mapping are already in place and working properly.
+
+  * Fields - All of the current base fields are mapped to their Django equivalent, although many are untested. We still need to get the related fields: ForeignKey, ManyToManyField, and OneToOneField mapped correctly.  There's been some work in this area.
+
+  * Polymorphic - We also need to look at mapping in Polymorphic structures: Multi-Table Inheritance and Abstract Base Classes.  Intermediate Models will not be far behind so those will need to be looked at as well.
+
+  * SA Enhancements - As we begin testing we're sure to identify areas that need to be further explored.  One area for greater functionality down the road is to expose more of the SA abilities within our mapped model.   
 
 == QuerySet Mapping ==
 
