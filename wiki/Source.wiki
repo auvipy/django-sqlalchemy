@@ -22,3 +22,5 @@ You can also just clone our mainline:
 {{{
 git clone git://gitorious.org/django-sqlalchemy/mainline.git
 }}}
+
+If you'd like to download a gzipped tarball, go to the [http://gitorious.org/projects/django-sqlalchemy/repos/mainline/trees/master Source Tree] tab and and select "Download as gzipped tarball" at the bottom of the page.
