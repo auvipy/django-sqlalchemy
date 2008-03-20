@@ -1,0 +1,23 @@
+We are using Git for version control on this project.  
+
+== Source Code Browser ==
+
+To browse the source code:
+
+{{{
+http://github.com/mtrier/django-sqlalchemy/tree/master
+}}}
+
+== Git ==
+
+Clone our Git repository:
+
+{{{
+git clone git://github.com/mtrier/django-sqlalchemy.git
+}}}
+
+Download a tarball of the master branch:
+
+{{{
+http://github.com/mtrier/django-sqlalchemy/tarball/master
+}}}
