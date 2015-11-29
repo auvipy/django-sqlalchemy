@@ -1,4 +1,4 @@
-from django_sqlalchemy import models
+from djalchemy import models
 
 class Reporter(models.Model):
     username = models.CharField(max_length=32)

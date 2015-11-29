@@ -1,8 +1,0 @@
-This is just a file
-===================
-
-To ensure that the tests are actually running.
-
-    >>> True
-    True
-

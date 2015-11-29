@@ -1,4 +1,4 @@
-from django_sqlalchemy import models
+from djalchemy import models
 
 class Person(models.Model):
     first_name = models.CharField(max_length=32)
