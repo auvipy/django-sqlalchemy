@@ -1,6 +1,6 @@
 
-from django_sqlalchemy.backend.base import metadata, Session, session
-from django_sqlalchemy.models import *
+from djlalchemy.backend.base import metadata, Session, session
+from djalchemy.models import *
 from django.db import models
 from sqlalchemy import *
 from sqlalchemy.schema import Table, SchemaItem, Column, MetaData
