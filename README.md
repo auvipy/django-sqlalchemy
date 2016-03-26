@@ -3,34 +3,66 @@ Experimental project for integrating SQLAlchemy with django web framework.
 This project aims to work as a drop in replacement for django ORM and all the
 parts of django should be able to use SQLalchemy easily as they use django ORM.
 
-roadmap for development of the django-sqlalchemy project.
+### Abstract
+A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with other non-django-orm data stores. So SQLalchemy integration to django refers to the work arounds to make the SQLalchemy table definitions works and quaks like django and to be used with modelforms and django admin.
 
-## Introduction
-Development for the django-sqlalchemy project is broken down in three primary areas:
+### Motivation
+**Django-sqlalchemy package**
+To acheive the goal A 3rd party package named django-sqlalchemy to have all nuts and bolts to make sqlalchemy work well with django. Like integration with different django derived features working with sqlalchemy nicely. Like management commands, django Meta compliant layer to interface with django forms/modelforms + Admin panel + Signals etc. The package should be a drop in replacement for django ORM.
 
-### Management Commands
-- overriding these, like syncdb/migrate, to pass off functionality to SQLAlchemy
-Declarative Mapper 
-- mapping the Django model structure into SQLAlchemy Table and Mapper information so that access to SA is available while still providing access to all of Django's expectations for functionality of a model.
-- 
-QuerySet Mapping - Map the backend django-sqlalchemy database so that we can override Django's QuerySet into a SqlAlchemyQuerySet that interprets and passes on all backend query functionality to SA. This includes the handing of sessions, metadata, and transactions.
-The detailed scope of work is defined in the detail section for each of the above areas.
+**Reafactor django itself**
+Some parts of django need to be refactored to work well with SQLlachemy. Like The meta API used by admin and model forms should be completely public and stable. The problem is that some methods of the meta API return field instances, and the API for the fields (especially for related fields) isn't public nor stable. we'll need to work on this parts to make them stable to play nicely with 3rd party sqlalchemy package.
 
-Details
-Management Commands
-The following management commands need to be overridden and replaced with SQLAlchemy versions:
+##Brief Architectural overview of SQLAlchemy in contrast to django ORM
+* The first one is : SQLAlchemy is a deeply layered system, whereas Django's ORM is basically just one layer which is the ORM. In SQLAlchemy you have at the very bottom the engine which with abstracts away connection pools and basic API differences between different databases, on top of that you have the SQL abstraction language, sitting on top of that and the table definitions you have the basic ORM and on top of that you have the declarative ORM which looks very close to the Django ORM.
+* Django's ORM is basically quite simple. Each time you do any query it generates a SQL expression for you and sends a query to the database. Then it constructs an object for you. That object can be modified and if you call save() on it, it will update the record in the database with the new values of the attributes. In SQLAlchemy there is an object called the “session” and it basically encapsulates a transaction. Each object is tracked by primary key in this session. As such each object only exists once by primary key. As such you can safely make a lot of queries and you never have things out of sync. When you commit the session it will send all changes at once to the database in correct order, if you rollback the session nothing happens instead.
 
-createdb - This needs to be mapped to the setup_all() method for SQLAlchemy which will do the right thing and create the appropriate tables. Since SQLAlchemy handles table creation in the same manner as Django (i.e. only creating the tables if not already present) this mapping shouldn't be too complicated.
-sql - This is mapped to SA so that SA provides the sql create syntax. We need to investigate colorization down the road so the "user experience" is similar to Django.
-Declarative Mapper
-Basic Models - The basics for the declarative mapping are already in place and working properly.
-Fields - All of the current base fields are mapped to their Django equivalent, although many are untested. We still need to get the related fields: ForeignKey, ManyToManyField, and OneToOneField mapped correctly. There's been some work in this area.
-Polymorphic - We also need to look at mapping in Polymorphic structures: Multi-Table Inheritance and Abstract Base Classes. Intermediate Models will not be far behind so those will need to be looked at as well.
-SA Enhancements - As we begin testing we're sure to identify areas that need to be further explored. One area for greater functionality down the road is to expose more of the SA abilities within our mapped model.
-QuerySet Mapping
-SqlAlchemyQuerySet Class - All items in the QuerySet class need to be mapped to the appropriate method on the SA Query class. Currently this is partially complete and all items with TODO in them still need to be investigated and mapped.
-Transaction Support - Transaction support that Django makes through it's TransactionMiddleware needs to be mapped into appropriate SA calls.
-Tests
-A lot of the initial work on django-sqlalchemy was more exploratory in nature, in order to determine the appropriate roadmap for implementation. At this point that roadmap is pretty clear, although certain details will only be know as we run into issues. (We don't know what we don't know.) It is proper at this time to begin fleshing out the testing of the implementation to provide coverage for the functionality already implemented.
 
-## model ._meta API compliant abstraction layer
+## Proposed solutions and Implementation design specification
+
+As the goal of this project is to create an alternative drop in replacement of django ORM to make sqlalchemy work almost natively on django apps, migrations, forms, modelforms, Admin, contenttyps, signals so the SQLalchemy core should be mapped with django Models properly.
+
+### Django-sqlalchmey package specific
+1. Basic glues for working well with django application as SQLAlchemy relies on global state for a few things:
+
+* A MetaData instance which tracks all known SQL tables.
+* A base class for all models using the ORM.
+* A session factory.
+Every application using SQLAlchemy must provides its own instance of these. This makes it hard to create add-on packages that also use SQLAlchemy, since they either need to have their own SQLAlchemy state, which makes it hard to integrate them into application, or they need to jump through multiple complex hoops to allow them share state with application.
+2. Django compatible settings for SQLalchemy package
+3. Django derived db management commands for handling django-SQLalchemy
+4. Migration Hnadling of the django-alchemy package. For that we have thre options:
+* use alembic to handle migrations much like flask-migrate
+* use sqlalchmey-migrate which is inspired by ruby-on-rails
+* use django's build in migration to handle sqlalchemy migrations[might need to improve django migrations too]
+ I will use the django built in migration framework to detect the change of sqlalchemy schema migrations. Though the migration framework is tightly coupled with django ORM we need to refactor and map the django model with SQLalchemy core to 
+
+3. Django model Meta API compliant layer to expose sqlalchemy table definitions on django forms/modelforms and admin app
+4. Work Properly with django ContentTypes
+5. Work properly with Django GIS
+6. Work well with signals
+
+### Refactor django internals 
+The meta API used by admin and model forms should be completely public 
+and stable. The problem is some methods of the meta API return 
+field instances, and the API for the fields (especially for related 
+fields) isn't public nor stable. For that reason works needed to be done to make the related field API stable.
+
+from https://code.djangoproject.com/ticket/24317 
+* Problems:
+ when using get_fields(), it'll return either a field.rel instance (for reverse side of user defined fields), or a real field instance (for example ForeignKey). These behave differently, so that the user must always remember which one he is dealing with. This creates lots of non-necessary conditioning in multiple places of Django.
+For example, the select_related descent has one branch for descending foreign keys and one to one fields, and another branch for descending to reverse one to one fields. Conceptually both one to one and reverse one to one fields are very similar, so this complication is non-necessary.
+
+So the idea is to deprecate field.rel, and instead add field.remote_field. The remote_field is just a field subclass, just like everything else in Django.
+
+* The benefits are:
+Conceptual simplicity - dealing with fields and rels is non-necessary, and confusing. Everything from get_fields() should be a field.
+Code simplicity - no special casing based on if a given relation is described by a rel or not
+Code reuse - ReverseManyToManyField is in most regard exactly like ManyToManyField
+The expected problems are mostly from 3rd party code. Users of _meta that already work on expectation of getting rel instances will likely need updating. Those users who subclass Django's fields (or duck-type Django's fields) will need updating. Examples of such projects include django-rest-framework and django-taggit.
+
+
+## Open Questions on Design specification and implementation
+* migration handling[django built in migration/alembic]
+* system checks
+* sqlalchemy core, orm and declarative extention
