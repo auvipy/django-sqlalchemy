@@ -22,23 +22,23 @@ The full documentation is at http://django-sqlalchemy.rtfd.org."""
 history = open('HISTORY.rst').read().replace('.. :changelog:', '')
 
 setup(
-    name='django-sqlalchemy',
+    name='django-alchemy',
     version='0.0.1',
-    description='django-sqlalchemy extension',
+    description='django extension for sqlalchemy integration ',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Asif Saifuddin Auvi',
     author_email='auvipy@gmail.com',
-    url='https://github.com/trendbreaker/django-sqlalchemy',
+    url='https://github.com/trendbreaker/django-alchemy',
     packages=[
-        'django-sqlalchemy',
+        'django-alchemy',
     ],
-    package_dir={'django-sqlalchemy': 'django-sqlalchemy'},
+    package_dir={'django-alchemy': 'django-alchemy'},
     include_package_data=True,
     install_requires=[
     ],
     license='MIT',
     zip_safe=False,
-    keywords='django-sqlalchemy',
+    keywords='django-alchemy',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

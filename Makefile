@@ -33,15 +33,15 @@ test-all:
 	tox
 
 coverage:
-	coverage run --source django-sqlalchemy setup.py test
+	coverage run --source django-alchemy setup.py test
 	coverage report -m
 	coverage html
 	open htmlcov/index.html
 
 docs:
-	rm -f docs/django-sqlalchemy.rst
+	rm -f docs/django-alchemy.rst
 	rm -f docs/modules.rst
-	sphinx-apidoc -o docs/ django-sqlalchemy
+	sphinx-apidoc -o docs/ django-alchemy
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	open docs/_build/html/index.html
