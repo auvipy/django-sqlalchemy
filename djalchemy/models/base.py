@@ -2,8 +2,7 @@
 from djalchemy.backend.base import metadata, Session, session
 from djalchemy.models import *
 from django.db import models
-from sqlalchemy import *
-from sqlalchemy.schema import Table, SchemaItem, Column, MetaData
+from sqlalchemy.schema import Table, Column, MetaData
 from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
@@ -20,6 +19,7 @@ def is_base(cls):
         if isinstance(base, ModelBase):
             return False
     return True
+
 
 class ModelBase(models.base.ModelBase):
     def __new__(cls, name, bases, attrs):
@@ -52,7 +52,8 @@ class ModelBase(models.base.ModelBase):
         if not isinstance(cls._meta.pk, AutoField):
             # we need to add in the django-sqlalchemy version of the AutoField
             # because the one that Django adds will not work for our purposes.
-            auto = AutoField(verbose_name='ID', primary_key=True, auto_created=True)
+            auto = AutoField(
+                verbose_name='ID', primary_key=True, auto_created=True)
             # this might seem redundant but without it the name is not set 
             # for SA
             auto.name = "id"
@@ -79,24 +80,23 @@ class ModelBase(models.base.ModelBase):
         # this sets up the Table declaration and also adds it as an __table__
         # attribute on our model class.
         if not cls._meta.db_table in cls.metadata:
-            cls.__table__ = table = Table(cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
+            cls.__table__ = table = Table(
+                cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
         else:
             # `table' is also assigned above. 
             table = cls.__table__
 
-        
         inherits = cls.__mro__[1]
         inherits = cls._decl_class_registry.get(inherits.__name__, None)
         mapper_args = getattr(cls, '__mapper_args__', {})
-        
+
         # finally we add the SA Mapper declaration, if we haven't been 
         if not hasattr(cls, "__mapper__"):
-            # 
             cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
         # add the SA Query class onto our model class for easy querying
         cls.query = Session.query_property()
         return type.__init__(cls, classname, bases, dict_)
-    
+
     def __setattr__(cls, key, value):
         if '__mapper__' in cls.__dict__:
             if isinstance(value, Column):
