@@ -70,7 +70,7 @@ def parse_filter(queryset, exclude, **kwargs):
         parts = [queryset.model] + arg.split(LOOKUP_SEP)
         if not parts:
             raise FieldError("Cannot parse keyword query %r" % arg)
-    
+
         # Work out the lookup type and remove it from 'parts', if necessary.
         if len(parts) == 1 or parts[-1] not in QUERY_TERMS:
             lookup_type = 'exact'
@@ -79,12 +79,12 @@ def parse_filter(queryset, exclude, **kwargs):
                 
         if callable(value):
             value = value()
-        
+
         field = reduce(lambda x, y: getattr(x, y), parts)
-    
+
         op = lookup_query_expression(lookup_type, field, value)
         expression = op()
-        
+
         if exclude:
             expression = ~(expression)
         query.query = query.query.filter(expression)

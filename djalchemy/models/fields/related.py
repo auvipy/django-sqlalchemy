@@ -10,10 +10,10 @@ class ForeignKey(models.ForeignKey):
     def create_column(self):
         # ForeignKey will be shadowed by the class inside of this method.
         from sqlalchemy import ForeignKey as safk
-        fk_primary = list(self.rel.to.__table__.primary_key)[0]
+        fk_primary = list(self.remote_field.to.__table__.primary_key)[0]
         self.column = sa.Column('%s_%s' % (
-            self.rel.to._meta.object_name.lower(),
-            self.rel.to._meta.pk.name), 
+            self.remote_field.to._meta.object_name.lower(),
+            self.remote_field.to._meta.pk.name), 
                              fk_primary.type, safk(fk_primary))
         return self.column
 
@@ -33,7 +33,7 @@ class ManyToManyField(models.ManyToManyField):
         super(self.__class__, self).contribute_to_class(cls, related)
         tbl_name = self.m2m_db_table()
         # Apparently, inclusion in metadata checks for table names. 
-        if not tbl_name in metadata:
+        if tbl_name not in metadata:
             # In which case, we create it. 
             local_m2m_col = self.m2m_column_name()
             remote_m2m_col = self.m2m_reverse_name()
@@ -45,10 +45,4 @@ class ManyToManyField(models.ManyToManyField):
                 sa.Column(local_m2m_col, sa.Integer, ),
                 sa.Column(remote_m2m_col, sa.Integer, ),)
             joining_table.create(metadata.bind)
-        # Now, what I don't get is why this path being called more
-        # than once for the same tbl_name.
-        
-            
-                   
-                   
-        
+

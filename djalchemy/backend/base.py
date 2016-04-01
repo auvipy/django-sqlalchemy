@@ -1,6 +1,7 @@
 
 from django.conf import settings
-from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseOperations, util
+from django.db.backends import BaseDatabaseWrapper, \
+    BaseDatabaseFeatures, BaseDatabaseOperations
 # from django_sqlalchemy.backend.query import QuerySetMixin
 
 try:
@@ -29,12 +30,13 @@ IntegrityError = Exception
 class DatabaseFeatures(BaseDatabaseFeatures):
     uses_custom_queryset = True
 
+
 class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
         return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
     
     def query_set_class(self, DefaultQuerySet):
-        from django_sqlalchemy.backend.utils import parse_filter
+        from djalchemy.backend.utils import parse_filter
         
         class SqlAlchemyQuerySet(DefaultQuerySet):
             """
@@ -137,7 +139,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 Returns a dictionary mapping each of the given IDs to the object with
                 that ID.
                 """
-                assert isinstance(id_list, (tuple,  list)), \
+                assert isinstance(id_list, (tuple, list)), \
                         "in_bulk() must be provided with a list of IDs."
                 if not id_list:
                     return {}
@@ -308,8 +310,8 @@ class DatabaseOperations(BaseDatabaseOperations):
                 clone.query._distinct = true_or_false
                 return clone
 
-            def extra(self, select=None, where=None, params=None, tables=None,
-                    order_by=None):
+            def extra(
+                self, select=None, where=None, params=None, tables=None, order_by=None):
                 """
                 TODO:need to map
                 Add extra SQL fragments to the query.
