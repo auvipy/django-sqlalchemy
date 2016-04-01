@@ -236,9 +236,10 @@ class USStateField(models.USStateField, Field):
 
 class XMLField(models.XMLField, TextField):
     def __init__(self, *args, **kwargs):
-        models.XMLField.__init__(self, verbose_name=kwargs.get('verbose_name', None), 
-                                       name=kwargs.get('name', None), 
-                                       schema_path=kwargs.get('schema_path', None), **kwargs)
+        models.XMLField.__init__(
+            self, verbose_name=kwargs.get('verbose_name', None),
+            name=kwargs.get('name', None),
+            schema_path=kwargs.get('schema_path', None), **kwargs)
         TextField.__init__(self, *args, **kwargs)
 
 class OrderingField(models.OrderingField, IntegerField):
