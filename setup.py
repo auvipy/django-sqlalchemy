@@ -32,7 +32,7 @@ setup(
     packages=[
         'django-alchemy',
     ],
-    package_dir={'django-alchemy': 'django-alchemy'},
+    package_dir={'django-alchemy': 'djalchemy'},
     include_package_data=True,
     install_requires=[
     ],
