@@ -1,5 +1,5 @@
 
-from djlalchemy.backend.base import metadata, Session, session
+from djalchemy.backend.base import metadata, Session, session
 from djalchemy.models import *
 from django.db import models
 from sqlalchemy import *
