@@ -1,18 +1,18 @@
-
 from djalchemy.backend.base import metadata, Session, session
 from djalchemy.models import *
 from django.db import models
-from sqlalchemy.schema import Table, Column, MetaData
-from sqlalchemy.orm import synonym as _orm_synonym, mapper, relation
+from sqlalchemy.schema import Table, Column
+from sqlalchemy.orm import synonym as _orm_synonym, mapper
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
 
 __all__ = ['Model', 'declarative_base', 'declared_synonym']
 
+
 def is_base(cls):
     """
     Scan bases classes to see if any is an instance of ModelBase. If we
-    don't find any, it means the current entity is a base class (like 
+    don't find any, it means the current entity is a base class (like
     the 'Model' class).
     """
     for base in cls.__bases__:
@@ -37,17 +37,17 @@ class ModelBase(models.base.ModelBase):
             # 'Model' isn't defined yet, meaning we're looking at Django's own
             # Model class, defined below.
             return type.__new__(cls, name, bases, attrs)
-        
+
         return super(ModelBase, cls).__new__(cls, name, bases, attrs)
-    
+
     def __init__(cls, classname, bases, dict_):
         if '_decl_class_registry' in cls.__dict__:
             return type.__init__(cls, classname, bases, dict_)
-        
+
         cls._decl_class_registry[classname] = cls
         our_stuff = []
-        
-        # we need to check if we've already created the AutoField. 
+
+        # we need to check if we've already created the AutoField.
         # AutoField here represents the dj-sa AutoField not Django's
         if not isinstance(cls._meta.pk, AutoField):
             # we need to add in the django-sqlalchemy version of the AutoField
@@ -67,7 +67,7 @@ class ModelBase(models.base.ModelBase):
             # things like Django's AutoField.
             if isinstance(field, (Field, ForeignKey)):
                 our_stuff.append(field.create_column())
-        
+
         # SA supports autoloading the model from database, but that will
         # not work for Django. We're leaving this here just for future
         # consideration.
@@ -76,7 +76,7 @@ class ModelBase(models.base.ModelBase):
             table_kw = {'autoload': True}
         else:
             table_kw = {}
-        
+
         # this sets up the Table declaration and also adds it as an __table__
         # attribute on our model class.
         if not cls._meta.db_table in cls.metadata:
@@ -90,9 +90,13 @@ class ModelBase(models.base.ModelBase):
         inherits = cls._decl_class_registry.get(inherits.__name__, None)
         mapper_args = getattr(cls, '__mapper_args__', {})
 
-        # finally we add the SA Mapper declaration, if we haven't been 
+        # finally we add the SA Mapper declaration, if we haven't been
         if not hasattr(cls, "__mapper__"):
-            cls.__mapper__ = mapper(cls, table, inherits=inherits, properties=dict([(f.name, f) for f in our_stuff]), **mapper_args)
+            cls.__mapper__ = mapper(
+                cls, table, inherits=inherits,
+                properties=dict([(f.name, f) for f in our_stuff]),
+                **mapper_args
+            )
         # add the SA Query class onto our model class for easy querying
         cls.query = Session.query_property()
         return type.__init__(cls, classname, bases, dict_)
@@ -111,6 +115,7 @@ class ModelBase(models.base.ModelBase):
         else:
             type.__setattr__(cls, key, value)
 
+
 def _deferred_relation(cls, prop):
     if isinstance(prop, PropertyLoader) and isinstance(prop.argument, basestring):
         arg = prop.argument
@@ -120,12 +125,13 @@ def _deferred_relation(cls, prop):
 
     return prop
 
+
 class declared_synonym(object):
     def __init__(self, prop, name, mapperprop=None):
         self.prop = prop
         self.name = name
         self.mapperprop = mapperprop
-        
+
     def _setup(self, cls, key, init_dict):
         prop = self.mapperprop or getattr(cls, self.name)
         prop = _deferred_relation(cls, prop)
@@ -137,15 +143,16 @@ class declared_synonym(object):
             setattr(cls, self.name, prop)
             setattr(cls, key, _orm_synonym(self.name))
 
+
 class Model(models.Model):
     '''
-    The base class for all entities    
+    The base class for all entities
     '''
     __metaclass__ = ModelBase
-    
+
     metadata = metadata
     _decl_class_registry = {}
-    
+
     def __init__(self, **kwargs):
         for k in kwargs:
             if not hasattr(type(self), k):
@@ -153,10 +160,10 @@ class Model(models.Model):
                                 (k, type(self).__name__))
             setattr(self, k, kwargs[k])
         return super(Model, self).__init__(**kwargs)
-    
+
     def save(self):
         """
-        Save the current instance. We force a flush so it mimics Django's 
+        Save the current instance. We force a flush so it mimics Django's
         behavior.
         """
         if self.pk is None:
@@ -165,7 +172,7 @@ class Model(models.Model):
         else:
             obj = self.update()
         return obj
-    
+
     def update(self, *args, **kwargs):
         """
         Updates direct against the database
@@ -173,7 +180,7 @@ class Model(models.Model):
         obj = session.update(self, *args, **kwargs)
         session.commit()
         return obj
-        
+
     def delete(self):
         """
         Deletes the current instance
