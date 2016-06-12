@@ -83,7 +83,7 @@ class ModelBase(models.base.ModelBase):
             cls.__table__ = table = Table(
                 cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
         else:
-            # `table' is also assigned above. 
+            # `table' is also assigned above.
             table = cls.__table__
 
         inherits = cls.__mro__[1]
