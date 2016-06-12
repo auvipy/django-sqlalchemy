@@ -1,4 +1,3 @@
-
 from django.conf import settings
 from django.db.backends import BaseDatabaseWrapper, \
     BaseDatabaseFeatures, BaseDatabaseOperations
@@ -14,8 +13,11 @@ except ImportError, e:
 from sqlalchemy.orm import scoped_session, sessionmaker
 
 engine = create_engine(settings.DJANGO_SQLALCHEMY_DBURI)
-Session = scoped_session(sessionmaker(
-    bind=engine, transactional=True))
+Session = scoped_session(
+    sessionmaker(
+        bind=engine, transactional=True)
+)
+
 session = Session()
 
 # default metadata
@@ -27,6 +29,7 @@ if getattr(settings, 'DJANGO_SQLALCHEMY_ECHO'):
 DatabaseError = Exception
 IntegrityError = Exception
 
+
 class DatabaseFeatures(BaseDatabaseFeatures):
     uses_custom_queryset = True
 
@@ -34,37 +37,37 @@ class DatabaseFeatures(BaseDatabaseFeatures):
 class DatabaseOperations(BaseDatabaseOperations):
     def quote_name(self, name):
         return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
-    
+
     def query_set_class(self, DefaultQuerySet):
         from djalchemy.backend.utils import parse_filter
-        
+
         class SqlAlchemyQuerySet(DefaultQuerySet):
             """
             A SqlAlchemy implementation of the Django QuerySet class
-            """    
+            """
             def __init__(self, model=None, query=None):
                 self.model = model
                 self.query = query or self.model.query
-            
+
             def __and__(self, other):
                 combined = self._clone()
                 combined.query.combine(other.query, sql.AND)
                 return combined
-            
+
             def __or__(self, other):
                 combined = self._clone()
                 combined.query.combine(other.query, sql.OR)
                 return combined
-            
+
             def __repr__(self):
                 return repr(self.query.all())
-            
+
             def __len__(self):
                 return self.query.count()
-            
+
             def __iter__(self):
                 return iter(self.query)
-                
+
             def __getitem__(self, k):
                 return self.query.__getitem__(k)
 
@@ -337,7 +340,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 """
                 clone = self._clone()
                 for field in clone.query._order_by:
-                    if field.modifier == operators.desc_op: 
+                    if field.modifier == operators.desc_op:
                         field.modifier = operators.asc_op
                     else:
                         field.modifier = operators.desc_op
@@ -358,8 +361,8 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def _fill_cache(self, num=None):
                 """
-                Fills the result cache with 'num' more entries (or until the results
-                iterator is exhausted).
+                Fills the result cache with 'num' more entries (or
+                until the results iterator is exhausted).
                 """
                 if self._iter:
                     try:
@@ -378,17 +381,19 @@ class DatabaseOperations(BaseDatabaseOperations):
             _insert.alters_data = True
         return SqlAlchemyQuerySet
 
+
 class ConnectionProxy(object):
     """
-    Provides a proxy between what Django expects as a connection and SQLAlchemy.
+    Provides a proxy between what Django expects as a connection and SQLAlchemy
     """
     def __init__(self, session, connection):
         pass
 
+
 class DatabaseWrapper(BaseDatabaseWrapper):
     features = DatabaseFeatures()
     ops = DatabaseOperations()
-    
+
     def _cursor(self, settings):
         from sqlalchemy.databases.sqlite import SQLiteDialect
         conn = session.connection()
@@ -397,4 +402,3 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             from django.db.backends.sqlite3.base import SQLiteCursorWrapper
             kwargs['factory'] = SQLiteCursorWrapper
         return conn.connection.cursor(**kwargs)
-
