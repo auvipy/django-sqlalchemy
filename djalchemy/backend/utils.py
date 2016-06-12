@@ -6,13 +6,14 @@ from django.db.models.sql.constants import QUERY_TERMS
 from django.utils.functional import curry
 
 QUERY_TERMS_MAPPING = {
-    'exact': operator.eq, 
-    'iexact': operator.eq, 
-    'gt': operator.gt, 
-    'gte': operator.ge, 
-    'lt': operator.lt, 
+    'exact': operator.eq,
+    'iexact': operator.eq,
+    'gt': operator.gt,
+    'gte': operator.ge,
+    'lt': operator.lt,
     'lte': operator.le
 }
+
 
 def lookup_query_expression(lookup_type, field, value):
     if lookup_type in QUERY_TERMS_MAPPING:
@@ -23,7 +24,7 @@ def lookup_query_expression(lookup_type, field, value):
         return curry(field.ilike, '%%%s%%' % value)
     elif lookup_type == 'in':
         return curry(field.in_, value)
-    elif lookup_type == 'startswith':        
+    elif lookup_type == 'startswith':
         return curry(field.like, '%s%%' % value)
     elif lookup_type == 'istartswith':
         return curry(field.ilike, '%s%%' % value)
@@ -33,7 +34,7 @@ def lookup_query_expression(lookup_type, field, value):
         return curry(field.ilike, '%%%s' % value)
     elif lookup_type == 'range':
         raise NotImplemented()
-    elif lookup_type == 'year':        
+    elif lookup_type == 'year':
         raise NotImplemented()
     elif lookup_type == 'month':
         raise NotImplemented()
@@ -45,26 +46,27 @@ def lookup_query_expression(lookup_type, field, value):
         raise NotImplemented()
     elif lookup_type == 'iregex':
         raise NotImplemented()
-    elif lookup_type == 'isnull': 
+    elif lookup_type == 'isnull':
         if value:
             return curry(operator.eq, field, None)
         else:
             return curry(operator.ne, field, None)
     else:
         return None
-        
+
+
 def parse_filter(queryset, exclude, **kwargs):
     """
     Add a single filter to the query. The 'filter_expr' is a pair:
     (filter_string, value). E.g. ('name__contains', 'fred')
-    
+
     If 'negate' is True, this is an exclude() filter. If 'trim' is True, we
     automatically trim the final join group (used internally when
     constructing nested queries).
     """
-    
+
     query = queryset._clone()
-    
+
     for filter_expr in [(k, v) for k, v in kwargs.items()]:
         arg, value = filter_expr
         parts = [queryset.model] + arg.split(LOOKUP_SEP)
@@ -76,7 +78,7 @@ def parse_filter(queryset, exclude, **kwargs):
             lookup_type = 'exact'
         else:
             lookup_type = parts.pop()
-                
+
         if callable(value):
             value = value()
 
