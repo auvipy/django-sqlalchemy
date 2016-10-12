@@ -29,7 +29,7 @@ class _MetaPartial(type):
             # It is the class partial itself
             return type.__new__(cls, name, bases, dict)
         if len(bases) != 2:
-            raise TypeError "A partial class definition must have only one base class to extend"
+            raise TypeError, "A partial class definition must have only one base class to extend"
         base = bases[1]
         for k, v in dict.items():
             if k == '__module__':
