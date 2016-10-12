@@ -41,6 +41,7 @@ class _MetaPartial(type):
         # Return the original class
         return base
 
+
 class partial:
     "Base class to declare partial classes. See module docstring for details."
     __metaclass__ = _MetaPartial
@@ -48,7 +49,7 @@ class partial:
 
 def replace(f):
     """
-    Method decorator to indicate that a method shall replace 
+    Method decorator to indicate that a method shall replace
     the method in the full class.
     """
     f.__replace = True
