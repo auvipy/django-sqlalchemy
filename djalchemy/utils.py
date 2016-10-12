@@ -76,11 +76,3 @@ class ClassReplacer:
                 # add the attribute to the original class
                 setattr(self.klass, n, v)
         return self.klass
-
-
-def _test():
-    import doctest
-    doctest.testmod()
-
-if __name__ == "__main__":
-    _test()
