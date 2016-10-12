@@ -126,7 +126,7 @@ def _deferred_relation(cls, prop):
     return prop
 
 
-class declared_synonym(object):
+class declared_synonym:
     def __init__(self, prop, name, mapperprop=None):
         self.prop = prop
         self.name = name
