@@ -1,5 +1,7 @@
 from django.db import models
+from djalchemy.backend.base import Session
 import sqlalchemy as sa
+from sqlalchemy import ForeignKey as safk
 
 
 class ForeignKey(models.ForeignKey):
@@ -9,7 +11,7 @@ class ForeignKey(models.ForeignKey):
 
     def create_column(self):
         # ForeignKey will be shadowed by the class inside of this method.
-        from sqlalchemy import ForeignKey as safk
+
         fk_primary = list(self.remote_field.to.__table__.primary_key)[0]
         self.column = sa.Column('%s_%s' % (
             self.remote_field.to._meta.object_name.lower(),
@@ -25,7 +27,6 @@ class ManyToManyField(models.ManyToManyField):
 
     def add(self, *args, **kwargs):
         super(self.__class__, self).add(self, *args, **kwargs)
-        from django_sqlalchemy.backend.base import Session
         Session.commit()
 
     def contribute_to_class(self, cls, related):

@@ -1,13 +1,19 @@
 from django.conf import settings
-from django.db.backends import BaseDatabaseWrapper, \
-    BaseDatabaseFeatures, BaseDatabaseOperations
+from django.core.exceptions import ImproperlyConfigured
+from django.db.backends.base.base import BaseDatabaseWrapper
+from django.db.backends.base.client import BaseDatabaseClient
+from django.db.backends.base.creation import BaseDatabaseCreation
+from django.db.backends.base.introspection import BaseDatabaseIntrospection
+from django.db.backends.base.operations import BaseDatabaseOperations
+from django.db.backends.dummy.features import DummyDatabaseFeatures
+from sqlalchemy.databases.sqlite import SQLiteDialect
+from djalchemy.backend.utils import parse_filter
 #from djalchemy.backend.query import QuerySetMixin
 
 try:
     from sqlalchemy import create_engine, MetaData
     from sqlalchemy.sql import operators
 except ImportError, e:
-    from django.core.exceptions import ImproperlyConfigured
     raise ImproperlyConfigured("Error loading sqlalchemy module: %s" % e)
 
 from sqlalchemy.orm import scoped_session, sessionmaker
@@ -39,7 +45,6 @@ class DatabaseOperations(BaseDatabaseOperations):
         return metadata.bind.dialect.identifier_preparer.quote_identifier(name)
 
     def query_set_class(self, DefaultQuerySet):
-        from djalchemy.backend.utils import parse_filter
 
         class SqlAlchemyQuerySet(DefaultQuerySet):
             """
@@ -129,7 +134,8 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def latest(self, field_name=None):
                 """
-                Returns the latest object, according to the model's 'get_latest_by'
+                Returns the latest object, according to the model's 
+                'get_latest_by'
                 option or optional given field_name.
                 """
                 latest_by = field_name or self.model._meta.get_latest_by
@@ -159,7 +165,8 @@ class DatabaseOperations(BaseDatabaseOperations):
             def update(self, **kwargs):
                 """
                 TODO:need to map
-                Updates all elements in the current QuerySet, setting all the given
+                Updates all elements in the current QuerySet,
+                setting all the given
                 fields to the appropriate values.
                 """
                 query = self.query.clone(sql.UpdateQuery)
@@ -189,8 +196,10 @@ class DatabaseOperations(BaseDatabaseOperations):
                 """
                 flat = kwargs.pop('flat', False)
                 if kwargs:
-                    raise TypeError('Unexpected keyword arguments to valueslist: %s'
-                            % (kwargs.keys(),))
+                    raise TypeError(
+                        'Unexpected keyword arguments to valueslist: %s'
+                        % (kwargs.keys(),)
+                    )
                 if flat and len(fields) > 1:
                     raise TypeError("'flat' is not valid when valueslist is called with more than one field.")
                 return self._clone(klass=ValuesListQuerySet, setup=True, flat=flat,
@@ -219,22 +228,23 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def all(self):
                 """
-                Returns a new QuerySet that is a copy of the current one. This allows a
+                Returns a new QuerySet that is a copy of the current one.
+                This allows a
                 QuerySet to proxy for a model manager in some cases.
                 """
                 return self._clone()
 
             def filter(self, *args, **kwargs):
                 """
-                Returns a new QuerySet instance with the args ANDed to the existing
-                set.
+                Returns a new QuerySet instance with the args ANDed to
+                the existing set.
                 """
                 return self._filter_or_exclude(False, *args, **kwargs)
 
             def exclude(self, *args, **kwargs):
                 """
-                Returns a new QuerySet instance with NOT (args) ANDed to the existing
-                set.
+                Returns a new QuerySet instance with NOT (args)
+                ANDed to the existing set.
                 """
                 return self._filter_or_exclude(True, *args, **kwargs)
 
@@ -244,11 +254,14 @@ class DatabaseOperations(BaseDatabaseOperations):
             def complex_filter(self, filter_obj):
                 """
                 TODO:need to map
-                Returns a new QuerySet instance with filter_obj added to the filters.
-                filter_obj can be a Q object (or anything with an add_to_query()
+                Returns a new QuerySet instance with filter_obj added to
+                the filters.
+                filter_obj can be a Q object (or anything with an
+                add_to_query()
                 method) or a dictionary of keyword lookup arguments.
 
-                This exists to support framework features such as 'limit_choices_to',
+                This exists to support framework features such as
+                'limit_choices_to',
                 and usually it will be more natural to use other methods.
                 """
                 if isinstance(filter_obj, Q) or hasattr(filter_obj, 'add_to_query'):
@@ -396,10 +409,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
     ops = DatabaseOperations()
 
     def _cursor(self, settings):
-        from sqlalchemy.databases.sqlite import SQLiteDialect
         conn = session.connection()
         kwargs = {}
-        if isinstance(conn.engine.dialect, SQLiteDialect,):
+        if isinstance(conn.engine.dialect, SQLiteDialect):
             from django.db.backends.sqlite3.base import SQLiteCursorWrapper
             kwargs['factory'] = SQLiteCursorWrapper
         return conn.connection.cursor(**kwargs)

@@ -1,6 +1,5 @@
 from django.db import models
 from django.db.models.fields import NOT_PROVIDED
-from django.conf import settings
 from sqlalchemy import Column
 from sqlalchemy.orm import deferred, synonym
 from sqlalchemy.types import *
@@ -203,7 +202,9 @@ class PhoneNumberField(models.PhoneNumberField, IntegerField):
     def sa_column_type(self):
         '''
         This is a bit odd because in Django the PhoneNumberField descends from
-        an IntegerField in a hacky way of getting around not providing a max_length.        The database backends enforce the length as a varchar(20).
+        an IntegerField in a hacky way of getting around not providing a
+        max_length.
+        The database backends enforce the length as a varchar(20).
         '''
         return Unicode(length=20)
 
