@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.db.backends import BaseDatabaseWrapper, \
     BaseDatabaseFeatures, BaseDatabaseOperations
-# from django_sqlalchemy.backend.query import QuerySetMixin
+#from djalchemy.backend.query import QuerySetMixin
 
 try:
     from sqlalchemy import create_engine, MetaData
@@ -373,16 +373,17 @@ class DatabaseOperations(BaseDatabaseOperations):
 
             def _insert(self, _return_id=False, _raw_values=False, **kwargs):
                 """
-                Inserts a new record for the given model. This provides an interface to
-                the InsertQuery class and is how Model.save() is implemented. It is not
-                part of the public API of QuerySet, though.
+                Inserts a new record for the given model. This provides an
+                interface to the InsertQuery class and is how Model.save()
+                is implemented. It is not part of the public API of QuerySet,
+                though.
                 """
                 print "howdy"
             _insert.alters_data = True
         return SqlAlchemyQuerySet
 
 
-class ConnectionProxy(object):
+class ConnectionProxy:
     """
     Provides a proxy between what Django expects as a connection and SQLAlchemy
     """
