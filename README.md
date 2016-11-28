@@ -1,6 +1,6 @@
 ** Warning: This project is far from use in production. you can participate on development process **
 
-# django-alchemy
+# django-sqlalchemy
 Experimental project for integrating SQLAlchemy with django web framework.
 This project aims to work as a drop in replacement for django ORM and all the
 parts of django should be able to use SQLalchemy easily as they use django ORM.
