@@ -1,8 +1,9 @@
+[![Join the chat at https://gitter.im/django-sqlalchemy/Lobby](https://badges.gitter.im/django-sqlalchemy/Lobby.svg)](https://gitter.im/django-sqlalchemy/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ** Warning: This project is far from use in production. you can participate on development process **
 
 # django-sqlalchemy
 
-[![Join the chat at https://gitter.im/django-sqlalchemy/Lobby](https://badges.gitter.im/django-sqlalchemy/Lobby.svg)](https://gitter.im/django-sqlalchemy/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Experimental project for integrating SQLAlchemy with django web framework.
 This project aims to work as a drop in replacement for django ORM and all the
 parts of django should be able to use SQLalchemy easily as they use django ORM.
