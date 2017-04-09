@@ -1,24 +1,27 @@
 [![Join the chat at https://gitter.im/django-sqlalchemy/Lobby](https://badges.gitter.im/django-sqlalchemy/Lobby.svg)](https://gitter.im/django-sqlalchemy/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-** Warning: This project is far from use in production. you can participate on development process **
+** Warning: This project is in early design decision stage. you can participate on development process **
 
 # django-sqlalchemy
 
-Experimental project for integrating SQLAlchemy with django web framework.
-This project aims to work as a drop in replacement for django ORM and all the
+A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with other non-django-orm data stores. 
+
+
+The django-sqlalchemy project aims to work as a seamless integrating of SQLAlchemy with django web framework.
+This projects long term goal is a drop in replacement for django ORM and all the
 parts of django should be able to use SQLalchemy easily as they use django ORM.
 
-### Abstract
-A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with other non-django-orm data stores. So SQLalchemy integration to django refers to the work arounds to make the SQLalchemy table definitions works and quaks like django and to be used with modelforms and django admin.
 
-### Motivation
-**Django-sqlalchemy package**
-To acheive the goal A 3rd party package named django-sqlalchemy to have all nuts and bolts to make sqlalchemy work well with django. Like integration with different django derived features working with sqlalchemy nicely. Like management commands, django Meta compliant layer to interface with django forms/modelforms + Admin panel + Signals etc. The package should be a drop in replacement for django ORM.
+
+
+# **Django-sqlalchemy package**
+
+To acheive the goal the package named django-sqlalchemy should have all nuts and bolts to make sqlalchemy work well with django. Integration with different django features working with sqlalchemy Like management commands, django Meta compliant layer to interface with django forms/modelforms + Admin panel + Signals etc.
 
 **Reafactor django itself**
 Some parts of django need to be refactored to work well with SQLlachemy. Like The meta API used by admin and model forms should be completely public and stable. The problem is that some methods of the meta API return field instances, and the API for the fields (especially for related fields) isn't public nor stable. we'll need to work on this parts to make them stable to play nicely with 3rd party sqlalchemy package.
 
-##Brief Architectural overview of SQLAlchemy in contrast to django ORM
+## Brief Architectural overview of SQLAlchemy in contrast to django ORM
 * The first one is : SQLAlchemy is a deeply layered system, whereas Django's ORM is basically just one layer which is the ORM. In SQLAlchemy you have at the very bottom the engine which with abstracts away connection pools and basic API differences between different databases, on top of that you have the SQL abstraction language, sitting on top of that and the table definitions you have the basic ORM and on top of that you have the declarative ORM which looks very close to the Django ORM.
 * Django's ORM is basically quite simple. Each time you do any query it generates a SQL expression for you and sends a query to the database. Then it constructs an object for you. That object can be modified and if you call save() on it, it will update the record in the database with the new values of the attributes. In SQLAlchemy there is an object called the “session” and it basically encapsulates a transaction. Each object is tracked by primary key in this session. As such each object only exists once by primary key. As such you can safely make a lot of queries and you never have things out of sync. When you commit the session it will send all changes at once to the database in correct order, if you rollback the session nothing happens instead.
 
