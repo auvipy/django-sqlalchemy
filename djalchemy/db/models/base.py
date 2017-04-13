@@ -1,6 +1,6 @@
 from djalchemy.backend.base import metadata, Session, session
-from djalchemy.models import *
-from django.db import models
+from djalchemy.db.models import *
+from django.db.models import ModelBase
 from sqlalchemy.schema import Table, Column
 from sqlalchemy.orm import synonym as _orm_synonym, mapper
 from sqlalchemy.orm.interfaces import MapperProperty
@@ -21,7 +21,7 @@ def is_base(cls):
     return True
 
 
-class ModelBase(models.base.ModelBase):
+class ModelBase(ModelBase):
     def __new__(cls, name, bases, attrs):
         # For reasons I don't entirely understand, both __new__ and
         # __init__ can be called more than once. This seems to happen
