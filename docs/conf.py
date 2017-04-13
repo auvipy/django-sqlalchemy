@@ -22,7 +22,7 @@ cwd = os.getcwd()
 parent = os.path.dirname(cwd)
 sys.path.insert(0, parent)
 
-import django-sqlalchemy
+import djalchemy
 
 # -- General configuration -----------------------------------------------------
 
@@ -46,8 +46,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'django-sqlalchemy'
-copyright = u'2015, Asif Saifuddin Auvi'
+project = 'django-sqlalchemy'
+copyright = '2017, Asif Saifuddin Auvi'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -192,8 +192,8 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'django-sqlalchemy.tex', u'django-sqlalchemy Documentation',
-   u'Asif Saifuddin Auvi', 'manual'),
+  ('index', 'django-sqlalchemy.tex', 'django-sqlalchemy Documentation',
+   'Asif Saif Uddin', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -222,8 +222,8 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'django-sqlalchemy', u'django-sqlalchemy Documentation',
-     [u'Asif Saifuddin Auvi'], 1)
+    ('index', 'django-sqlalchemy', 'django-sqlalchemy Documentation',
+     ['Asif Saifuddin Auvi'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -236,8 +236,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'django-sqlalchemy', u'django-sqlalchemy Documentation',
-   u'Asif Saifuddin Auvi', 'django-sqlalchemy', 'One line description of project.',
+  ('index', 'django-sqlalchemy', 'django-sqlalchemy Documentation',
+   'Asif Saifuddin Auvi', 'django-sqlalchemy', 'One line description of project.',
    'Miscellaneous'),
 ]
 
