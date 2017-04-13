@@ -28,7 +28,7 @@ setup(
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
     author='Asif Saifuddin Auvi',
     author_email='auvipy@gmail.com',
-    url='https://github.com/trendbreaker/django-sqlalchemy',
+    url='https://github.com/auvipy/django-sqlalchemy',
     packages=[
         'django-sqlalchemy',
     ],

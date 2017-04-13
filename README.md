@@ -4,22 +4,20 @@
 
 # django-sqlalchemy
 
-A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with other non-django-orm data stores. 
+A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with
+other non-django-orm data stores. 
 
 
 The django-sqlalchemy project aims to work as a seamless integrating of SQLAlchemy with django web framework.
-This projects long term goal is a drop in replacement for django ORM and all the
-parts of django should be able to use SQLalchemy easily as they use django ORM.
+Long term goal of this project is to become a drop in replacement for django ORM and all the
+parts of django should be able to use SQLalchemy easily as they use django ORM today.
 
 
+To acheive the goal, need all nuts and bolts to make sqlalchemy work well with django. Integration with
+different django features working with sqlalchemy Like management commands, django Meta compliant layer
+to interface with django forms/modelforms + Admin panel + Signals etc.
 
 
-# **Django-sqlalchemy package**
-
-To acheive the goal the package named django-sqlalchemy should have all nuts and bolts to make sqlalchemy work well with django. Integration with different django features working with sqlalchemy Like management commands, django Meta compliant layer to interface with django forms/modelforms + Admin panel + Signals etc.
-
-**Reafactor django itself**
-Some parts of django need to be refactored to work well with SQLlachemy. Like The meta API used by admin and model forms should be completely public and stable. The problem is that some methods of the meta API return field instances, and the API for the fields (especially for related fields) isn't public nor stable. we'll need to work on this parts to make them stable to play nicely with 3rd party sqlalchemy package.
 
 ## Brief Architectural overview of SQLAlchemy in contrast to django ORM
 * The first one is : SQLAlchemy is a deeply layered system, whereas Django's ORM is basically just one layer which is the ORM. In SQLAlchemy you have at the very bottom the engine which with abstracts away connection pools and basic API differences between different databases, on top of that you have the SQL abstraction language, sitting on top of that and the table definitions you have the basic ORM and on top of that you have the declarative ORM which looks very close to the Django ORM.
