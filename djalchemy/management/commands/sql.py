@@ -1,7 +1,6 @@
-
 from cStringIO import StringIO
 from sqlalchemy import create_engine
-from djalchemy.backend.base import metadata
+from djalchemy.db.backend.base import metadata
 from django.core.management.base import AppCommand
 from django.conf import settings
 from django.db.models.loading import get_models

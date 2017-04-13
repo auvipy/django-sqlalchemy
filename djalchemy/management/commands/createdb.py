@@ -2,6 +2,7 @@ from optparse import make_option
 from django.core.management.base import NoArgsCommand
 from djalchemy.backend.base import metadata
 
+
 class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
         make_option(

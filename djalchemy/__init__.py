@@ -1,4 +1,4 @@
-from djalchemy import backend
-__path__.extend(djalchemy.backend.__path__)
+from db import backend
+from db.models import *
 
-# from django_sqlalchemy.models import *
+__path__.extend(backend.__path__)
