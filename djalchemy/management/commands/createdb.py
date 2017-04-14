@@ -1,6 +1,6 @@
 from optparse import make_option
 from django.core.management.base import NoArgsCommand
-from djalchemy.backend.base import metadata
+from djalchemy.db.backend.base import metadata
 
 
 class Command(NoArgsCommand):
