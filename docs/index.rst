@@ -24,4 +24,4 @@ If you have any suggestions or questions about **django-sqlalchemy** feel free t
 at auvipy@gmail.com.
 
 If you encounter any errors or problems with **django-sqlalchemy**, please let me know!
-Open an Issue at the GitHub http://github.com/trendbreaker/django-sqlalchemy main repository.
+Open an Issue at the GitHub http://github.com/auvipy/django-sqlalchemy main repository.

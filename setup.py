@@ -32,7 +32,7 @@ setup(
     packages=[
         'django-sqlalchemy',
     ],
-    package_dir={'django-sqlalchemy': 'djalchemy'},
+    package_dir={'django-sqlalchemy': 'sqladjango'},
     include_package_data=True,
     install_requires=[
     ],
