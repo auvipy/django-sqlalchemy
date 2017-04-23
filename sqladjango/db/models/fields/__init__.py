@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.fields import NOT_PROVIDED
 from sqlalchemy import Column
-from sqlalchemy.orm import deferred, synonym
+# from sqlalchemy.orm import deferred
 from sqlalchemy.types import *
 
 

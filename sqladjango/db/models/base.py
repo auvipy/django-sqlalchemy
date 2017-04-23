@@ -21,7 +21,7 @@ def is_base(cls):
     return True
 
 
-class ModelBase(ModelBase):
+class BaseModel(ModelBase):
     def __new__(cls, name, bases, attrs):
         # For reasons I don't entirely understand, both __new__ and
         # __init__ can be called more than once. This seems to happen
@@ -38,7 +38,7 @@ class ModelBase(ModelBase):
             # Model class, defined below.
             return type.__new__(cls, name, bases, attrs)
 
-        return super(ModelBase, cls).__new__(cls, name, bases, attrs)
+        return super(BaseModel, cls).__new__(cls, name, bases, attrs)
 
     def __init__(cls, classname, bases, dict_):
         if '_decl_class_registry' in cls.__dict__:
@@ -53,15 +53,16 @@ class ModelBase(ModelBase):
             # we need to add in the django-sqlalchemy version of the AutoField
             # because the one that Django adds will not work for our purposes.
             auto = AutoField(
-                verbose_name='ID', primary_key=True, auto_created=True)
-            # this might seem redundant but without it the name is not set 
-            # for SA
+                verbose_name='ID', primary_key=True, auto_created=True
+            )
+            # this might seem redundant but without it the name is not
+            # set for SA
             auto.name = "id"
             # now we can append the AutoField into our_stuff which gets
             # used in the SA Table declaration
             our_stuff.append(auto.create_column())
         for field in cls._meta.fields:
-            from django_sqlalchemy.models.fields.related import ForeignKey
+            from db.models.fields.related import ForeignKey
             # Field and ForeignKey here are our implementations of
             # those fields.  It's specifically done that way to ignore
             # things like Django's AutoField.
@@ -79,7 +80,7 @@ class ModelBase(ModelBase):
 
         # this sets up the Table declaration and also adds it as an __table__
         # attribute on our model class.
-        if not cls._meta.db_table in cls.metadata:
+        if cls._meta.db_table not in cls.metadata:
             cls.__table__ = table = Table(
                 cls._meta.db_table, cls.metadata, *our_stuff, **table_kw)
         else:
@@ -107,7 +108,7 @@ class ModelBase(ModelBase):
                 cls.__table__.append_column(value)
                 cls.__mapper__.add_property(key, value)
             elif isinstance(value, MapperProperty):
-                cls.__mapper__.add_property(key, _deferred_relation(cls, value))
+                cls.__mapper__.add_property(key, deferred_relation(cls, value))
             elif isinstance(value, declared_synonym):
                 value._setup(cls, key, None)
             else:
@@ -119,6 +120,7 @@ class ModelBase(ModelBase):
 def _deferred_relation(cls, prop):
     if isinstance(prop, PropertyLoader) and isinstance(prop.argument, basestring):
         arg = prop.argument
+
         def return_cls():
             return cls._decl_class_registry[arg]
         prop.argument = return_cls
@@ -148,7 +150,7 @@ class Model(models.Model):
     '''
     The base class for all entities
     '''
-    __metaclass__ = ModelBase
+    __metaclass__ = BaseModel
 
     metadata = metadata
     _decl_class_registry = {}
@@ -156,8 +158,10 @@ class Model(models.Model):
     def __init__(self, **kwargs):
         for k in kwargs:
             if not hasattr(type(self), k):
-                raise TypeError('%r is an invalid keyword argument for %s' %
-                                (k, type(self).__name__))
+                raise TypeError(
+                    '%r is an invalid keyword argument for %s' %
+                    (k, type(self).__name__)
+                )
             setattr(self, k, kwargs[k])
         return super(Model, self).__init__(**kwargs)
 
