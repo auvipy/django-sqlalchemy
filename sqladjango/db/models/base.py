@@ -1,10 +1,11 @@
-from djalchemy.backend.base import metadata, Session, session
-from djalchemy.db.models import *
 from django.db.models import ModelBase
 from sqlalchemy.schema import Table, Column
 from sqlalchemy.orm import synonym as _orm_synonym, mapper
 from sqlalchemy.orm.interfaces import MapperProperty
 from sqlalchemy.orm.properties import PropertyLoader
+
+from sqladjango.db.backend.base import metadata, Session, session
+from sqladjango.db.models import *
 
 __all__ = ['Model', 'declarative_base', 'declared_synonym']
 
@@ -163,7 +164,7 @@ class Model(models.Model):
                     (k, type(self).__name__)
                 )
             setattr(self, k, kwargs[k])
-        return super(Model, self).__init__(**kwargs)
+        return super().__init__(**kwargs)
 
     def save(self):
         """
