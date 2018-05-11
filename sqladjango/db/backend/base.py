@@ -8,8 +8,8 @@ from django.db.backends.base.introspection import BaseDatabaseIntrospection
 from django.db.backends.base.operations import BaseDatabaseOperations
 from django.db.backends.dummy.features import DummyDatabaseFeatures
 from sqlalchemy.databases.sqlite import SQLiteDialect
-from djalchemy.backend.utils import parse_filter
-#from djalchemy.backend.query import QuerySetMixin
+from sqladjango.db.backend.utils import parse_filter
+# from djalchemy.backend.query import QuerySetMixin
 
 try:
     from sqlalchemy import create_engine, MetaData
@@ -51,6 +51,7 @@ class DatabaseOperations(BaseDatabaseOperations):
             """
             A SqlAlchemy implementation of the Django QuerySet class
             """
+
             def __init__(self, model=None, query=None):
                 self.model = model
                 self.query = query or self.model.query
@@ -122,12 +123,13 @@ class DatabaseOperations(BaseDatabaseOperations):
                 specifying whether an object was created.
                 """
                 assert kwargs, \
-                        'get_or_create() must be passed at least one keyword argument'
+                    'get_or_create() must be passed at least one keyword argument'
                 defaults = kwargs.pop('defaults', {})
                 try:
                     return self.get(**kwargs), False
                 except self.model.DoesNotExist:
-                    params = dict([(k, v) for k, v in kwargs.items() if '__' not in k])
+                    params = dict(
+                        [(k, v) for k, v in kwargs.items() if '__' not in k])
                     params.update(defaults)
                     obj = self.model(**params)
                     obj.save()
@@ -140,7 +142,8 @@ class DatabaseOperations(BaseDatabaseOperations):
                 option or optional given field_name.
                 """
                 latest_by = field_name or self.model._meta.get_latest_by
-                assert bool(latest_by), "latest() requires either a field_name parameter or 'get_latest_by' in the model"
+                assert bool(
+                    latest_by), "latest() requires either a field_name parameter or 'get_latest_by' in the model"
                 return self.query.order_by('-%s' % latest_by).one()
 
             def in_bulk(self, id_list):
@@ -150,7 +153,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 that ID.
                 """
                 assert isinstance(id_list, (tuple, list)), \
-                        "in_bulk() must be provided with a list of IDs."
+                    "in_bulk() must be provided with a list of IDs."
                 if not id_list:
                     return {}
                 self.query = self.query.filter('pk__in', id_list)
@@ -186,9 +189,9 @@ class DatabaseOperations(BaseDatabaseOperations):
                 """
                 # >>> b = a.from_statement(select([Category.c.name]))
                 # >>> print b
-                # SELECT foo_category.name AS foo_category_name 
+                # SELECT foo_category.name AS foo_category_name
                 # FROM foo_category
-                # >>> 
+                # >>>
                 return self._clone(klass=ValuesQuerySet, setup=True, _fields=fields)
 
             def valueslist(self, *fields, **kwargs):
@@ -202,9 +205,10 @@ class DatabaseOperations(BaseDatabaseOperations):
                         % (kwargs.keys(),)
                     )
                 if flat and len(fields) > 1:
-                    raise TypeError("'flat' is not valid when valueslist is called with more than one field.")
+                    raise TypeError(
+                        "'flat' is not valid when valueslist is called with more than one field.")
                 return self._clone(klass=ValuesListQuerySet, setup=True, flat=flat,
-                        _fields=fields)
+                                   _fields=fields)
 
             def dates(self, field_name, kind, order='ASC'):
                 """
@@ -213,15 +217,16 @@ class DatabaseOperations(BaseDatabaseOperations):
                 for the given field_name, scoped to 'kind'.
                 """
                 assert kind in ("month", "year", "day"), \
-                        "'kind' must be one of 'year', 'month' or 'day'."
+                    "'kind' must be one of 'year', 'month' or 'day'."
                 assert order in ('ASC', 'DESC'), \
-                        "'order' must be either 'ASC' or 'DESC'."
+                    "'order' must be either 'ASC' or 'DESC'."
                 # Let the FieldDoesNotExist exception propagate.
-                field = self.model._meta.get_field(field_name, many_to_many=False)
+                field = self.model._meta.get_field(
+                    field_name, many_to_many=False)
                 assert isinstance(field, DateField), "%r isn't a DateField." \
-                        % field_name
+                    % field_name
                 return self._clone(klass=DateQuerySet, setup=True, _field=field,
-                        _kind=kind, _order=order)
+                                   _kind=kind, _order=order)
 
             ##################################################################
             # PUBLIC METHODS THAT ALTER ATTRIBUTES AND RETURN A NEW QUERYSET #
@@ -282,11 +287,12 @@ class DatabaseOperations(BaseDatabaseOperations):
                 true_or_false = kwargs.pop('true_or_false', True)
                 if kwargs:
                     raise TypeError('Unexpected keyword arguments to select_related: %s'
-                            % (kwargs.keys(),))
+                                    % (kwargs.keys(),))
                 obj = self._clone()
                 if fields:
                     if depth:
-                        raise TypeError('Cannot pass both "depth" and fields to select_related()')
+                        raise TypeError(
+                            'Cannot pass both "depth" and fields to select_related()')
                     obj.query.add_select_related(fields)
                 else:
                     obj.query.select_related = true_or_false
@@ -316,7 +322,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                         from sqlalchemy import desc
                         query = query.order_by(desc(o))
                     else:
-                        query = query.order_by(o)        
+                        query = query.order_by(o)
                 return query
 
             def distinct(self, true_or_false=True):
@@ -328,13 +334,18 @@ class DatabaseOperations(BaseDatabaseOperations):
                 return clone
 
             def extra(
-                self, select=None, where=None, params=None, tables=None, order_by=None):
+                    self,
+                    select=None,
+                    where=None,
+                    params=None,
+                    tables=None,
+                    order_by=None):
                 """
                 TODO:need to map
                 Add extra SQL fragments to the query.
                 """
                 assert self.query.can_filter(), \
-                        "Cannot change a query once a slice has been taken"
+                    "Cannot change a query once a slice has been taken"
                 clone = self._clone()
                 if select:
                     clone.query.extra_select.update(select)
@@ -392,7 +403,7 @@ class DatabaseOperations(BaseDatabaseOperations):
                 is implemented. It is not part of the public API of QuerySet,
                 though.
                 """
-                print "howdy"
+                print("howdy")
             _insert.alters_data = True
         return SqlAlchemyQuerySet
 
@@ -401,6 +412,7 @@ class ConnectionProxy:
     """
     Provides a proxy between what Django expects as a connection and SQLAlchemy
     """
+
     def __init__(self, session, connection):
         pass
 
