@@ -1,13 +1,14 @@
 from django.db import models
-from djalchemy.backend.base import Session
 import sqlalchemy as sa
 from sqlalchemy import ForeignKey as safk
+
+from sqladjango.db.backend.base import Session
 
 
 class ForeignKey(models.ForeignKey):
     def __init__(self, to, *args, **kwargs):
         self.column = None
-        models.ForeignKey.__init__(self, to, *args, **kwargs)
+        super().__init__(self, to, *args, **kwargs)
 
     def create_column(self):
         # ForeignKey will be shadowed by the class inside of this method.
@@ -30,7 +31,7 @@ class ManyToManyField(models.ManyToManyField):
         Session.commit()
 
     def contribute_to_class(self, cls, related):
-        from django_sqlalchemy.backend.base import metadata
+        from sqladjango.db.backend.base import metadata
         super(self.__class__, self).contribute_to_class(cls, related)
         tbl_name = self.m2m_db_table()
         # Apparently, inclusion in metadata checks for table names.
