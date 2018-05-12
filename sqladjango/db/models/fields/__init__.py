@@ -46,7 +46,7 @@ class AutoField(models.AutoField, Field):
 
     def sa_column_kwargs(self):
         kwargs = dict(primary_key=True)
-        base = super(AutoField, self).sa_column_kwargs()
+        base = super().sa_column_kwargs()
         base.update(kwargs)
         return base
 
@@ -77,7 +77,13 @@ class CommaSeparatedIntegerField(models.CommaSeparatedIntegerField, CharField):
 
 
 class DateField(models.DateField, Field):
-    def __init__(self, verbose_name=None, name=None, auto_now=False, auto_now_add=False, **kwargs):
+    def __init__(
+            self,
+            verbose_name=None,
+            name=None,
+            auto_now=False,
+            auto_now_add=False,
+            **kwargs):
 
         models.DateField.__init__(
             self, verbose_name=verbose_name,
@@ -110,7 +116,7 @@ class DecimalField(models.DecimalField, Field):
 
     def sa_column_kwargs(self):
         kwargs = dict(precision=self.decimal_places, length=self.max_digits)
-        base = super(DecimalField, self).sa_column_kwargs()
+        base = super().sa_column_kwargs()
         base.update(kwargs)
         return base
 
@@ -120,7 +126,7 @@ class DecimalField(models.DecimalField, Field):
 
 class EmailField(models.EmailField, CharField):
     def __init__(self, *args, **kwargs):
-        models.EmailField.__init__(self,  *args, **kwargs)
+        models.EmailField.__init__(self, *args, **kwargs)
         CharField.__init__(self, *args, **kwargs)
 
 
