@@ -2,6 +2,8 @@
 
 ** Warning: This project is in early design decision stage. you can participate on development process **
 
+## Motivation: https://rixx.de/blog/djangocon-europe-2019-how-and-why-to-build-a-django-based-project-with-sqlalchemy-core-for-data-analysis/
+
 # django-sqlalchemy
 
 A common request over the entire life of Django has been to use Django's forms (and in particular, Django's Admin) with data stores that aren't Django's ORM. SQLAlchemy is a popular choice for those using SQL databases. With the formalization of django Meta API it is now possible to use that formalize API for interfacing with
