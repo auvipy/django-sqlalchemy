@@ -2,6 +2,8 @@
 
 ** Warning: This project is in early design decision stage. you can participate on development process **
 
+The end goal of this project is to build the django ORM on top of SQLalchemy core so that, existing django apps can easily migrate from current ORM of django to SQLalchemy based django ORM with almost no change or as little change as possible.
+
 ## Motivation: https://rixx.de/blog/djangocon-europe-2019-how-and-why-to-build-a-django-based-project-with-sqlalchemy-core-for-data-analysis/
 
 # django-sqlalchemy
