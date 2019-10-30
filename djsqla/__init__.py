@@ -1,1 +1,1 @@
-default_app_config = 'sqladjango.app.apps.AppConfig'
+default_app_config = 'djsqla.app.apps.AppConfig'
