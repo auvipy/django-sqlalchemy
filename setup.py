@@ -26,7 +26,7 @@ setup(
     version='0.0.1',
     description='django extension for sqlalchemy integration ',
     long_description=readme + '\n\n' + doclink + '\n\n' + history,
-    author='Asif Saifuddin Auvi',
+    author='Asif Saif Uddin',
     author_email='auvipy@gmail.com',
     url='https://github.com/auvipy/django-sqlalchemy',
     packages=[
