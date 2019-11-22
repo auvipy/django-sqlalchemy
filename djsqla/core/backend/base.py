@@ -12,8 +12,8 @@ from sqladjango.db.backend.utils import parse_filter
 # from djalchemy.backend.query import QuerySetMixin
 
 try:
-    from sqlalchemy import create_engine, MetaData
-    from sqlalchemy.sql import operators
+    from sqla import create_engine, MetaData
+    from sqla.sql import operators
 except ImportError, e:
     raise ImproperlyConfigured("Error loading sqlalchemy module: %s" % e)
 
