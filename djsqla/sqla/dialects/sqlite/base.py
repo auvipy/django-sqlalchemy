@@ -1012,13 +1012,23 @@ class SQLiteCompiler(compiler.SQLCompiler):
         )
 
     def visit_json_getitem_op_binary(self, binary, operator, **kw):
-        return "JSON_QUOTE(JSON_EXTRACT(%s, %s))" % (
+        if binary.type._type_affinity is sqltypes.JSON:
+            expr = "JSON_QUOTE(JSON_EXTRACT(%s, %s))"
+        else:
+            expr = "JSON_EXTRACT(%s, %s)"
+
+        return expr % (
             self.process(binary.left, **kw),
             self.process(binary.right, **kw),
         )
 
     def visit_json_path_getitem_op_binary(self, binary, operator, **kw):
-        return "JSON_QUOTE(JSON_EXTRACT(%s, %s))" % (
+        if binary.type._type_affinity is sqltypes.JSON:
+            expr = "JSON_QUOTE(JSON_EXTRACT(%s, %s))"
+        else:
+            expr = "JSON_EXTRACT(%s, %s)"
+
+        return expr % (
             self.process(binary.left, **kw),
             self.process(binary.right, **kw),
         )
@@ -1032,6 +1042,9 @@ class SQLiteCompiler(compiler.SQLCompiler):
 
 class SQLiteDDLCompiler(compiler.DDLCompiler):
     def get_column_specification(self, column, **kwargs):
+        if column.computed is not None:
+            raise exc.CompileError("SQLite does not support computed columns")
+
         coltype = self.dialect.type_compiler.process(
             column.type, type_expression=column
         )

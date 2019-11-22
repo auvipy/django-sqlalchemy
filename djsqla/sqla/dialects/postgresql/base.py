@@ -1559,13 +1559,36 @@ class PGCompiler(compiler.SQLCompiler):
             self.process(element.stop, **kw),
         )
 
-    def visit_json_getitem_op_binary(self, binary, operator, **kw):
-        kw["eager_grouping"] = True
-        return self._generate_generic_binary(binary, " -> ", **kw)
+    def visit_json_getitem_op_binary(
+        self, binary, operator, _cast_applied=False, **kw
+    ):
+        if (
+            not _cast_applied
+            and binary.type._type_affinity is not sqltypes.JSON
+        ):
+            kw["_cast_applied"] = True
+            return self.process(sql.cast(binary, binary.type), **kw)
 
-    def visit_json_path_getitem_op_binary(self, binary, operator, **kw):
         kw["eager_grouping"] = True
-        return self._generate_generic_binary(binary, " #> ", **kw)
+
+        return self._generate_generic_binary(
+            binary, " -> " if not _cast_applied else " ->> ", **kw
+        )
+
+    def visit_json_path_getitem_op_binary(
+        self, binary, operator, _cast_applied=False, **kw
+    ):
+        if (
+            not _cast_applied
+            and binary.type._type_affinity is not sqltypes.JSON
+        ):
+            kw["_cast_applied"] = True
+            return self.process(sql.cast(binary, binary.type), **kw)
+
+        kw["eager_grouping"] = True
+        return self._generate_generic_binary(
+            binary, " #> " if not _cast_applied else " #>> ", **kw
+        )
 
     def visit_getitem_binary(self, binary, operator, **kw):
         return "%s[%s]" % (
@@ -1658,23 +1681,20 @@ class PGCompiler(compiler.SQLCompiler):
         return "ONLY " + sqltext
 
     def get_select_precolumns(self, select, **kw):
-        if select._distinct is not False:
-            if select._distinct is True:
-                return "DISTINCT "
-            elif isinstance(select._distinct, (list, tuple)):
+        if select._distinct or select._distinct_on:
+            if select._distinct_on:
                 return (
                     "DISTINCT ON ("
                     + ", ".join(
-                        [self.process(col, **kw) for col in select._distinct]
+                        [
+                            self.process(col, **kw)
+                            for col in select._distinct_on
+                        ]
                     )
                     + ") "
                 )
             else:
-                return (
-                    "DISTINCT ON ("
-                    + self.process(select._distinct, **kw)
-                    + ") "
-                )
+                return "DISTINCT "
         else:
             return ""
 
@@ -1876,6 +1896,9 @@ class PGDDLCompiler(compiler.DDLCompiler):
             if default is not None:
                 colspec += " DEFAULT " + default
 
+        if column.computed is not None:
+            colspec += " " + self.process(column.computed)
+
         if not column.nullable:
             colspec += " NOT NULL"
         return colspec
@@ -2045,6 +2068,18 @@ class PGDDLCompiler(compiler.DDLCompiler):
             )
 
         return "".join(table_opts)
+
+    def visit_computed_column(self, generated):
+        if generated.persisted is False:
+            raise exc.CompileError(
+                "PostrgreSQL computed columns do not support 'virtual' "
+                "persistence; set the 'persisted' flag to None or True for "
+                "PostgreSQL support."
+            )
+
+        return "GENERATED ALWAYS AS (%s) STORED" % self.sql_compiler.process(
+            generated.sqltext, include_table=False, literal_binds=True
+        )
 
 
 class PGTypeCompiler(compiler.GenericTypeCompiler):
