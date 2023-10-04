@@ -1,4 +1,4 @@
-# Copyright (c) 2015-2021 Asif Saif Uddin. 
+# Copyright (c) 2015-2035 Asif Saif Uddin. All right reserved.
 <https://auvipy.blogspot.com/> <https://github.com/auvipy>
 
 Permission is hereby granted, free of charge, to any person obtaining
